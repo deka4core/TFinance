@@ -1,2 +1,3 @@
-# TFinance
+# TFinance [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/deka4core/StaticMapApi.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/deka4core/StaticMapApi/context:python) [![Total alerts](https://img.shields.io/lgtm/alerts/g/deka4core/StaticMapApi.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/deka4core/StaticMapApi/alerts/) ![Lines of code](https://img.shields.io/tokei/lines/github.com/deka4core/TFinance) ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/deka4core/TFinance) ![Pull requests](https://img.shields.io/static/v1?label=PR&message=Welcome&color=orange)
+
 Average team project. Here we work with such libraries as telegram-bot-api, mathplotlib and etc.
