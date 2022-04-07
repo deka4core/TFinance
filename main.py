@@ -28,7 +28,7 @@ def get_stock_image(update, context):
 def start(update, context):
     user_data = update.effective_user
     user = User(user_data.to_dict())
-    Database('data.db').add_to_db(user)
+    Database('data.db').add_user(user)
     update.message.reply_text(f"Привет {user.first_name}!")
 
 

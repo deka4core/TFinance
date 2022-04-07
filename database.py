@@ -14,7 +14,7 @@ class Database:
                 first_name STRING, last_name STRING, username STRING, favourites_stocks STRING, points INTEGER);""")
         self.con.commit()
 
-    def add_to_db(self, user: User):
+    def add_user(self, user: User):
         self.cur.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?, ?);",
                          (user.id, user.first_name, user.last_name,
                           user.username, user.favourites_stocks, user.points))
