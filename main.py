@@ -1,14 +1,14 @@
 import logging
 
+from database import Database
 from graphics.visualize import pdr
 from telegram.ext import Updater, CommandHandler
 
-# Импортируем токен из другого файла safety_key.py.
+from items import User
 from safety_key import TOKEN
-
-
-# Запускаем логирование
 from graphics.visualize import do_stock_image
+
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
     filename="./logs/tfinance_main.log")
@@ -25,15 +25,23 @@ def get_stock_image(update, context):
         update.message.reply_text("Такой акции не было найдено в данных Yahoo Finance.")
 
 
+def start(update, context):
+    user_data = update.effective_user
+    user = User(user_data.to_dict())
+    Database('data.db').add_to_db(user)
+    update.message.reply_text(f"Привет {user.first_name}!")
+
+
+def help(update, context):
+    update.message.reply_text("Я пока не умею помогать...")
+
+
 def main():
-    # Создаём объект updater.
     updater = Updater(TOKEN)
     dispatcher = updater.dispatcher
-
-    # Регистрируем обработчик команд.
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("stock", get_stock_image))
-
-    # Обработка сообщений.
     updater.start_polling()
     updater.idle()
 
