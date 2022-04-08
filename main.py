@@ -1,5 +1,7 @@
 import logging
 import json
+import datetime
+import pytz
 
 from database import Database
 from graphics.visualize import pdr
@@ -13,6 +15,8 @@ from safety_key import TOKEN
 from graphics.visualize import do_stock_image
 
 # Запускаем логирование
+from stock import get_stock
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
     filename="./logs/tfinance_main.log")
@@ -52,7 +56,6 @@ def get_list_stocks(update, context):
         update.message.reply_text("Неверный способ ввода. /help")
 
 
-
 # Обработчик команды /stock [stock_index]
 def get_stock_image(update, context):
     try:
@@ -65,7 +68,9 @@ def get_stock_image(update, context):
 
 def start(update, context):
     user_data = update.effective_user
+    chat_id = update.message.chat_id
     user = User(user_data.to_dict())
+    user.chat_id = chat_id
     Database('data.db').add_user(user)
     update.message.reply_text(f"Привет {user.first_name}!")
 
@@ -97,7 +102,13 @@ def follow(update, context):
             Database('data.db').add_favourites_stocks(user, context.args[0])
             update.message.reply_text('Акция добавлена в избранное')
 
-            
+
+def notify_assignees(context):
+    for user in Database('data.db').get_users():
+        for i in user.favourites_stocks.split():
+            context.bot.send_message(chat_id=user.chat_id, text=f'{i}')
+
+
 def stats(update, context):
     user_data = update.effective_user
     user = User(user_data.to_dict())
@@ -109,9 +120,13 @@ def stats(update, context):
 
             
 def main():
+    test_stock()
     # Создаём объект updater.
     updater = Updater(TOKEN)
     dispatcher = updater.dispatcher
+    job_queue = updater.job_queue
+    t = datetime.time(hour=8, tzinfo=pytz.timezone('Europe/Moscow'))
+    job_queue.run_daily(notify_assignees, t)
     # Регистрируем обработчик команд.
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
