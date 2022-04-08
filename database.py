@@ -26,10 +26,15 @@ class Database:
             stock_name = f'{stocks[0]} {stock_name}'
         self.cur.execute(f"UPDATE users SET favourites_stocks = '{stock_name}' WHERE id = {user.id}")
         self.con.commit()
+        
+        
+    def read_info(self, user):
+        data = self.cur.execute(f"SELECT username, favourites_stocks, points FROM users WHERE id = {user.id}").fetchone()
+        return data
 
     def check_favourites_stocks(self, user, stock_name: str):
         stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
-        if stocks[0] and stock_name in stocks[0]:
+        if stocks[0] and stock_name in stocks[0].split():
             return True
         return False
 
