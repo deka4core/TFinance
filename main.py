@@ -120,7 +120,6 @@ def stats(update, context):
 
             
 def main():
-    test_stock()
     # Создаём объект updater.
     updater = Updater(TOKEN)
     dispatcher = updater.dispatcher
