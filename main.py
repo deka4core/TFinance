@@ -18,6 +18,40 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def send_stocks(update, start, end, templates):
+    msg = ''
+    for i in range(start, end):
+        msg += templates['stocks'][i] + ', '
+    update.message.reply_text(msg)
+
+
+def get_list_stocks(update, context):
+    try:
+        with open('stocks.json') as f:
+            templates = json.load(f)
+        if context.args[0] == 'all':
+            send_stocks(update, 0, 700, templates)
+            send_stocks(update, 700, 1400, templates)
+            send_stocks(update, 1400, 2100, templates)
+        elif context.args[0].isdigit():
+            numb = int(context.args[0])
+            if numb > 700:
+                while numb > 700:
+                    numb = 700
+                    send_stocks(update, 0, numb, templates)
+                    numb = int(context.args[0]) - 700
+            send_stocks(update, 0, numb, templates)
+        else:
+            message = ''
+            for el in templates['stocks']:
+                if el[0] == context.args[0]:
+                    message += el + ', '
+            update.message.reply_text(message)
+    except (IndexError, ValueError):
+        update.message.reply_text("Неверный способ ввода. /stocks [количество акций]. Например: /stock 100"
+                                  "Если хотите посмотреть все акции введите /stocks all")
+
+
 
 # Обработчик команды /stock [stock_index]
 def get_stock_image(update, context):
@@ -37,7 +71,10 @@ def start(update, context):
 
 
 def help(update, context):
-    update.message.reply_text("Я пока не умею помогать...")
+    update.message.reply_text("/stocks [количество акций] Например: /stocks 100 - посмотреть первые 100 акций\n"
+                              "/stocks all - посмотреть все акции на бирже\n"
+                              "/stocks [буква алфавита] Например: /stocks A - посмотреть все акции, "
+                              "название которых начинается с 'A'")
 
 
 def favourites(update, context):
@@ -71,6 +108,7 @@ def main():
     dispatcher.add_handler(CommandHandler("favourites", favourites))
     dispatcher.add_handler(CommandHandler("follow", follow))
     dispatcher.add_handler(CommandHandler("stock", get_stock_image))
+    dispatcher.add_handler(CommandHandler("stocks", get_list_stocks))
     # Обработка сообщений.
     updater.start_polling()
     updater.idle()
