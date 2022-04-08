@@ -49,8 +49,7 @@ def get_list_stocks(update, context):
                     message += el + ', '
             update.message.reply_text(message)
     except (IndexError, ValueError):
-        update.message.reply_text("Неверный способ ввода. /stocks [количество акций]. Например: /stock 100"
-                                  "Если хотите посмотреть все акции введите /stocks all")
+        update.message.reply_text("Неверный способ ввода. /help")
 
 
 
@@ -98,7 +97,17 @@ def follow(update, context):
             Database('data.db').add_favourites_stocks(user, context.args[0])
             update.message.reply_text('Акция добавлена в избранное')
 
+            
+def stats(update, context):
+    user_data = update.effective_user
+    user = User(user_data.to_dict())
+    data = Database('data.db').read_info(user)
+    try:
+        update.message.reply_text(f'UserName: {data[0]}\nИзбранные акции: {data[1]}\nОчки, заработанные в игре: {data[2]}')
+    except TypeError:
+        update.message.reply_text('Вас нет в бд, запустите команду /start чтобы исправить ошибку')
 
+            
 def main():
     # Создаём объект updater.
     updater = Updater(TOKEN)
@@ -110,6 +119,7 @@ def main():
     dispatcher.add_handler(CommandHandler("follow", follow))
     dispatcher.add_handler(CommandHandler("stock", get_stock_image))
     dispatcher.add_handler(CommandHandler("stocks", get_list_stocks))
+    dispatcher.add_handler(CommandHandler("stats", stats))
     # Обработка сообщений.
     updater.start_polling()
     updater.idle()
