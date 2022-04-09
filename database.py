@@ -23,9 +23,9 @@ class Database:
 
     def get_users(self):
         users = self.cur.execute(f"SELECT * FROM users").fetchall()
-        return [User({'id': i[0], 'chat_id': i[1], 'first_name': i[2], 'last_name': i[3], 'username': i[4],
-                      'favourites_stocks': i[5], 'prediction': i[6], 'selected_stock': i[7],
-                      'points': i[8]}) for i in users]
+        return [User({'id': i[0], 'first_name': i[1], 'last_name': i[2], 'username': i[3],
+                      'favourites_stocks': i[4], 'prediction': i[5], 'selected_stock': i[6],
+                      'points': i[7]}) for i in users]
 
     def add_prediction(self, user: User, stock_name: str, updown: str):
         predictions = self.cur.execute(f"SELECT prediction FROM users WHERE id = {user.id}").fetchone()
@@ -42,8 +42,7 @@ class Database:
         return False
 
     def get_predictions(self, user: User):
-        data = self.cur.execute(
-            f"SELECT prediction FROM users WHERE id = {user.id}").fetchone()[0]
+        data = self.cur.execute(f"SELECT prediction FROM users WHERE id = {user.id}").fetchone()[0]
         return data
 
     def delete_predictions(self, user: User):
@@ -55,12 +54,12 @@ class Database:
         self.con.commit()
 
     def get_selected_stock(self, user) -> str:
-        data = self.cur.execute(
-            f"SELECT selected_stock FROM users WHERE id = {user.id}").fetchone()[0]
+        data = self.cur.execute(f"SELECT selected_stock FROM users WHERE id = {user.id}").fetchone()[0]
         return data
 
     def read_info(self, user):
-        data = self.cur.execute(f"SELECT username, favourites_stocks, points FROM users WHERE id = {user.id}").fetchone()
+        data = self.cur.execute(f"SELECT username, favourites_stocks,"
+                                f"points FROM users WHERE id = {user.id}").fetchone()
         return data
 
     def add_favourites_stocks(self, user: User, stock_name: str):

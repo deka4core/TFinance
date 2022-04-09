@@ -247,7 +247,10 @@ def game_results(context):
 
 def main():
     # обновление файла stocks.json
-    get_all_stocks()
+    try:
+        get_all_stocks()
+    except Exception as e:
+        print(e)
     # Создаём объект updater.
     updater = Updater(TOKEN)
     dispatcher = updater.dispatcher
