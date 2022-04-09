@@ -2,9 +2,11 @@ import logging
 import datetime
 import pytz
 
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+
 from database import Database
-from graphics.visualize import pdr
-from telegram.ext import Updater, CommandHandler
+from graphics.visualize import pdr, check_stock_prices
+from telegram.ext import Updater, CommandHandler, ConversationHandler, CallbackQueryHandler
 
 from items import User
 
@@ -129,11 +131,109 @@ def stats(update, context):
     user = User(user_data.to_dict())
     data = Database('data.db').read_info(user)
     try:
-        update.message.reply_text(f'UserName: {data[0]}\nИзбранные акции: {data[1]}\nОчки, заработанные в игре: {data[2]}')
+        update.message.reply_text(f'UserName: {data[0]}\nИзбранные акции:'
+                                  f' {", ".join(data[1].split()) if data[1] else None}'
+                                  f'\nОчки, заработанные в игре: {data[2]}')
     except TypeError:
         update.message.reply_text('Вас нет в бд, запустите команду /start чтобы исправить ошибку')
 
-            
+
+# Меню игры
+def game_menu(update, context):
+    try:
+        if not context.args:
+            update.message.reply_text("Неправильно введена команда! Попробуйте: /game [индекс акции]")
+            return ConversationHandler.END
+
+        user_data = update.effective_user
+        user = User(user_data.to_dict())
+        data = Database('data.db')
+        data.select_stock(user, context.args[0])
+
+        if Database('data.db').check_prediction_stock(user, context.args[0]):
+            update.message.reply_text("Прогноз на эту акцию уже установлен.")
+            return ConversationHandler.END
+
+        keyboard = [[
+                InlineKeyboardButton("Повышение", callback_data=str(1)),
+                InlineKeyboardButton("Понижение", callback_data=str(2))],
+                [InlineKeyboardButton("Выход", callback_data=str(0))]
+            ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_photo(photo=do_stock_image(context.args[0]))
+        update.message.reply_text(text=f"Предугадайте курс {context.args[0]} на завтра.", reply_markup=reply_markup)
+    except pdr._utils.RemoteDataError:
+        update.message.reply_text(text="Такой акции не было найдено в данных Yahoo Finance.")
+        return ConversationHandler.END
+    except TypeError:
+        update.message.reply_text('Вас нет в бд, запустите команду /start чтобы исправить ошибку')
+
+    return 1
+
+
+# Кнопка повышения акции
+def higher_game(update, context):
+    user_data = update.effective_user
+    user = User(user_data.to_dict())
+    data = Database('data.db')
+    data.add_prediction(user, data.get_selected_stock(user), 'up')
+
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text="Предсказание установлено на повышение")
+    return ConversationHandler.END
+
+
+# Кнопка понижения акции
+def lower_game(update, context):
+    user_data = update.effective_user
+    user = User(user_data.to_dict())
+    data = Database('data.db')
+    data.add_prediction(user, data.get_selected_stock(user), 'down')
+
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text="Предсказание установлено на понижение")
+    return ConversationHandler.END
+
+
+# Кнопка выхода из меню игры
+def exit_game_menu(update, context):
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text="Прогноз отменен")
+    return ConversationHandler.END
+
+
+# Подсчитывает результаты игры
+def game_results(context):
+    db = Database('data.db')
+    for user in db.get_users():
+        for i in user.prediction.split():
+            if i.split(":")[-1] == 'up':
+                if check_stock_prices(i.split(":")[0]):
+                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был верным. "
+                                                                        f"\nВы получили 1 очко. "
+                                                                        f"\nПосмотреть кол-во очков можно, "
+                                                                        f"использовав /stats.")
+                    db.add_point(user)
+                else:
+                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был неверным.")
+            else:
+                if not check_stock_prices(i.split(":")[0]):
+                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был верным. "
+                                                                        f"\nВы получили 1 очко. "
+                                                                        f"\nПосмотреть кол-во очков можно, "
+                                                                        f"использовав /stats.")
+                    db.add_point(user)
+                else:
+                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был неверным.")
+
+        # Удаляем пройденные прогнозы
+        db.delete_predictions(user)
+        user.prediction = db.get_predictions(user)
+
+
 def main():
     # обновление файла stocks.json
     get_all_stocks()
@@ -143,6 +243,15 @@ def main():
     job_queue = updater.job_queue
     t = datetime.time(hour=8, tzinfo=pytz.timezone('Europe/Moscow'))
     job_queue.run_daily(notify_assignees, t)
+    job_queue.run_daily(game_results,
+                        datetime.time(hour=3, tzinfo=pytz.timezone('Europe/Moscow')))
+
+    conv_handler = ConversationHandler(entry_points=[CommandHandler("game", game_menu)],
+                                       states={1: [CallbackQueryHandler(higher_game, pattern=f"^1$"),
+                                                   CallbackQueryHandler(lower_game, pattern=f"^2$"),
+                                                   CallbackQueryHandler(exit_game_menu, pattern=f"^0$")]},
+                                       fallbacks=[CommandHandler("game", game_menu)])
+    dispatcher.add_handler(conv_handler)
     # Регистрируем обработчик команд.
     dispatcher.add_handler(CommandHandler("daily", daily))
     dispatcher.add_handler(CommandHandler("start", start))
