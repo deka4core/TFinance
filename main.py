@@ -14,7 +14,7 @@ from safety_key import TOKEN
 from graphics.visualize import do_stock_image
 
 # Запускаем логирование
-from stock import get_stock, load_stocks
+from stock import get_stock, load_stocks, get_all_stocks
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
@@ -106,12 +106,22 @@ def follow(update, context):
 
 def notify_assignees(context):
     for user in Database('data.db').get_users():
-        for i in user.favourites_stocks.split():
-            try:
-                st = get_stock(i).to_dict('list')
-                context.bot.send_message(chat_id=user.id, text=f'{i}: {st.get("Close")[0]}')
-            except:
-                print("Err")
+        if Database('data.db').check_user_daily_notify(user.id):
+            for i in user.favourites_stocks.split():
+                try:
+                    context.bot.send_photo(chat_id=user.id, photo=do_stock_image(i))
+                except:
+                    print("Err")
+
+
+def daily(update, context):
+    user_data = update.effective_user
+    user_id = user_data.to_dict().get('id')
+    if Database('data.db').check_user_daily_notify(user_id):
+        update.message.reply_text(f'Ежедневная рассылка выключена')
+    else:
+        update.message.reply_text(f'Ежедневная рассылка включена')
+    Database('data.db').user_daily_notify(user_id)
 
 
 def stats(update, context):
@@ -125,6 +135,8 @@ def stats(update, context):
 
             
 def main():
+    # обновление файла stocks.json
+    get_all_stocks()
     # Создаём объект updater.
     updater = Updater(TOKEN)
     dispatcher = updater.dispatcher
@@ -132,7 +144,7 @@ def main():
     t = datetime.time(hour=8, tzinfo=pytz.timezone('Europe/Moscow'))
     job_queue.run_daily(notify_assignees, t)
     # Регистрируем обработчик команд.
-    #    dispatcher.add_handler(CommandHandler('tst', notify_assignees))
+    dispatcher.add_handler(CommandHandler("daily", daily))
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("favourites", favourites))
