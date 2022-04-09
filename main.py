@@ -1,5 +1,4 @@
 import logging
-import json
 import datetime
 import pytz
 
@@ -17,6 +16,8 @@ from safety_key import TOKEN
 from graphics.visualize import do_stock_image
 
 # Запускаем логирование
+from stock import get_stock, load_stocks, get_all_stocks
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
     filename="./logs/tfinance_main.log")
@@ -32,8 +33,7 @@ def send_stocks(update, start, end, templates):
 
 def get_list_stocks(update, context):
     try:
-        with open('stocks.json') as f:
-            templates = json.load(f)
+        templates = load_stocks('stocks.json')
         if context.args[0] == 'all':
             send_stocks(update, 0, 700, templates)
             send_stocks(update, 700, 1400, templates)
@@ -68,9 +68,7 @@ def get_stock_image(update, context):
 
 def start(update, context):
     user_data = update.effective_user
-    chat_id = update.message.chat_id
     user = User(user_data.to_dict())
-    user.chat_id = chat_id
     Database('data.db').add_user(user)
     update.message.reply_text(f"Привет {user.first_name}!")
 
@@ -86,7 +84,7 @@ def favourites(update, context):
     user_data = update.effective_user
     user = User(user_data.to_dict())
     stocks = Database('data.db').get_favourites_stocks(user)
-    if stocks[0]:
+    if stocks:
         update.message.reply_text(', '.join(stocks[0].split()))
     else:
         update.message.reply_text('У вас нет избранных акций')
@@ -99,14 +97,33 @@ def follow(update, context):
         if Database('data.db').check_favourites_stocks(user, context.args[0]):
             update.message.reply_text('Акция уже в избранном')
         else:
-            Database('data.db').add_favourites_stocks(user, context.args[0])
-            update.message.reply_text('Акция добавлена в избранное')
+            if context.args[0] in load_stocks('stocks.json')["stocks"]:
+                Database('data.db').add_favourites_stocks(user, context.args[0])
+                update.message.reply_text('Акция добавлена в избранное')
+            else:
+                update.message.reply_text('Акция не найдена')
 
 
 def notify_assignees(context):
     for user in Database('data.db').get_users():
-        for i in user.favourites_stocks.split():
-            context.bot.send_message(chat_id=user.chat_id, text=f'{i}')
+        if Database('data.db').check_user_daily_notify(user.id):
+            for i in user.favourites_stocks.split():
+                try:
+                    context.bot.send_photo(chat_id=user.id, photo=do_stock_image(i))
+                except:
+                    print("Err")
+
+
+def daily(update, context):
+    user_data = update.effective_user
+    user = User(user_data.to_dict())
+    Database('data.db').add_user(user)
+    user_id = user.id
+    if Database('data.db').check_user_daily_notify(user_id):
+        update.message.reply_text(f'Ежедневная рассылка выключена')
+    else:
+        update.message.reply_text(f'Ежедневная рассылка включена')
+    Database('data.db').user_daily_notify(user_id)
 
 
 def stats(update, context):
@@ -218,6 +235,8 @@ def game_results(context):
 
 
 def main():
+    # обновление файла stocks.json
+    get_all_stocks()
     # Создаём объект updater.
     updater = Updater(TOKEN)
     dispatcher = updater.dispatcher
@@ -234,6 +253,7 @@ def main():
                                        fallbacks=[CommandHandler("game", game_menu)])
     dispatcher.add_handler(conv_handler)
     # Регистрируем обработчик команд.
+    dispatcher.add_handler(CommandHandler("daily", daily))
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("favourites", favourites))

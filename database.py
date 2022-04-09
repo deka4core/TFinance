@@ -12,13 +12,13 @@ class Database:
     def setup(self):
         self.cur.execute("""CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY ON CONFLICT IGNORE NOT NULL,
          chat_id INTEGER,first_name STRING, last_name STRING,
-         username STRING, favourites_stocks STRING, prediction STRING, selected_stock STRING, points INTEGER);""")
+         username STRING, favourites_stocks STRING, prediction STRING, selected_stock STRING, points INTEGER, daily_notify BOOLEAN);""")
         self.con.commit()
 
     def add_user(self, user: User):
-        self.cur.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);",
-                         (user.id, user.chat_id, user.first_name, user.last_name,
-                          user.username, None, None, None, user.points))
+        self.cur.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
+                         (user.id, user.first_name, user.last_name,
+                          user.username, None, None, None, user.points, False))
         self.con.commit()
 
     def get_users(self):
@@ -79,6 +79,15 @@ class Database:
     def get_favourites_stocks(self, user: User):
         stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
         return stocks
+
+    def user_daily_notify(self, user_id: int):
+        self.cur.execute(f"UPDATE users SET daily_notify = NOT daily_notify WHERE id = {user_id}")
+        self.con.commit()
+
+    def check_user_daily_notify(self, user_id: int) -> bool:
+        a = self.cur.execute(f"SELECT daily_notify FROM users WHERE id = {user_id}").fetchone()
+        return bool(a[0])
+
 
     def add_point(self, user: User):
         prev_num = self.cur.execute(

@@ -1,7 +1,7 @@
 class User:
     def __init__(self, user_data: dict):
         self.id: int = user_data.get('id')
-        self.chat_id = user_data.get('chat_id')
+        self.chat_id = self.id
         self.first_name: str = user_data.get('first_name')
         self.last_name: str = user_data.get('last_name')
         self.username: str = user_data.get('username')
