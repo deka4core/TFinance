@@ -27,13 +27,6 @@ class Database:
                       'favourites_stocks': i[5], 'prediction': i[6], 'selected_stock': i[7],
                       'points': i[8]}) for i in users]
 
-    def add_favourites_stocks(self, user: User, stock_name: str):
-        stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
-        if stocks and stocks[0]:
-            stock_name = f'{stocks[0]} {stock_name}'
-        self.cur.execute(f"UPDATE users SET favourites_stocks = '{stock_name}' WHERE id = {user.id}")
-        self.con.commit()
-
     def add_prediction(self, user: User, stock_name: str, updown: str):
         predictions = self.cur.execute(f"SELECT prediction FROM users WHERE id = {user.id}").fetchone()
         prediction = f"{stock_name}:{updown}"
@@ -70,6 +63,13 @@ class Database:
         data = self.cur.execute(f"SELECT username, favourites_stocks, points FROM users WHERE id = {user.id}").fetchone()
         return data
 
+    def add_favourites_stocks(self, user: User, stock_name: str):
+        stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
+        if stocks and stocks[0]:
+            stock_name = f'{stocks[0]} {stock_name}'
+        self.cur.execute(f"UPDATE users SET favourites_stocks = '{stock_name}' WHERE id = {user.id}")
+        self.con.commit()
+
     def check_favourites_stocks(self, user, stock_name: str):
         stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
         if stocks[0] and stock_name in stocks[0].split():
@@ -79,6 +79,19 @@ class Database:
     def get_favourites_stocks(self, user: User):
         stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
         return stocks
+
+    def remove_favourites_stock(self, user_id, stock_name: str):
+        stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user_id}").fetchone()
+        if stocks[0]:
+            print(stocks[0])
+            a = stocks[0].split()
+            a.remove(stock_name)
+            if not a:
+                a = 'null'
+            else:
+                a = f"'{' '.join(a)}'"
+            self.cur.execute(f"UPDATE users SET favourites_stocks = {a} WHERE id = {user_id}")
+            self.con.commit()
 
     def user_daily_notify(self, user_id: int):
         self.cur.execute(f"UPDATE users SET daily_notify = NOT daily_notify WHERE id = {user_id}")
