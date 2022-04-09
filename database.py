@@ -13,7 +13,7 @@ class Database:
         self.cur.execute("""CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY ON CONFLICT IGNORE NOT NULL,
          chat_id INTEGER,first_name STRING, last_name STRING,
          username STRING, favourites_stocks STRING, prediction STRING, selected_stock STRING, points INTEGER, 
-         daily_notify BOOLEAN));""")
+         daily_notify BOOLEAN);""")
         self.con.commit()
 
     def add_user(self, user: User):
