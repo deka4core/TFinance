@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 
 
 # Функция создания графика акции, принимающая её индекс на рынке Yahoo Finance.
-def do_stock_image(stock_name):
+def do_stock_image(stock_name, delta=30):
     # Берём две даты: нынешнюю и 30 дней назад.
     current_date = datetime.datetime.today()
-    p_date = datetime.datetime.today() - datetime.timedelta(days=30)
+    p_date = datetime.datetime.today() - datetime.timedelta(days=delta)
 
     # Забираем данные из Yahoo Finance.
     stock = pdr.get_data_yahoo(stock_name,
@@ -28,3 +28,19 @@ def do_stock_image(stock_name):
     plt.savefig(output)
     contents = output.getvalue()
     return contents
+
+
+def check_stock_prices(stock_name, delta=2) -> bool:
+    current_date = datetime.datetime.today()
+    p_date = datetime.datetime.today() - datetime.timedelta(days=delta)
+
+    # Забираем данные из Yahoo Finance.
+    stock = pdr.get_data_yahoo(stock_name,
+                               start=p_date,
+                               end=current_date)
+
+    # Цены за последние 2 дня
+    prev_price = stock['Close'][-2]
+    curr_price = stock['Close'][-1]
+
+    return curr_price > prev_price
