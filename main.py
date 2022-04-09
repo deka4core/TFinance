@@ -85,7 +85,7 @@ def favourites(update, context):
     user = User(user_data.to_dict())
     stocks = Database('data.db').get_favourites_stocks(user)
     if stocks:
-        update.message.reply_text(', '.join(stocks))
+        update.message.reply_text(', '.join(stocks[0].split()))
     else:
         update.message.reply_text('У вас нет избранных акций')
 
@@ -107,7 +107,11 @@ def follow(update, context):
 def notify_assignees(context):
     for user in Database('data.db').get_users():
         for i in user.favourites_stocks.split():
-            context.bot.send_message(chat_id=user.chat_id, text=f'{i}')
+            try:
+                st = get_stock(i).to_dict('list')
+                context.bot.send_message(chat_id=user.id, text=f'{i}: {st.get("Close")[0]}')
+            except:
+                print("Err")
 
 
 def stats(update, context):
@@ -128,6 +132,7 @@ def main():
     t = datetime.time(hour=8, tzinfo=pytz.timezone('Europe/Moscow'))
     job_queue.run_daily(notify_assignees, t)
     # Регистрируем обработчик команд.
+    #    dispatcher.add_handler(CommandHandler('tst', notify_assignees))
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("favourites", favourites))
