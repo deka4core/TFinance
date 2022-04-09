@@ -1,5 +1,4 @@
 import logging
-import json
 import datetime
 import pytz
 
@@ -15,7 +14,7 @@ from safety_key import TOKEN
 from graphics.visualize import do_stock_image
 
 # Запускаем логирование
-from stock import get_stock
+from stock import get_stock, load_stocks
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
@@ -32,8 +31,7 @@ def send_stocks(update, start, end, templates):
 
 def get_list_stocks(update, context):
     try:
-        with open('stocks.json') as f:
-            templates = json.load(f)
+        templates = load_stocks('stocks.json')
         if context.args[0] == 'all':
             send_stocks(update, 0, 700, templates)
             send_stocks(update, 700, 1400, templates)
@@ -99,8 +97,11 @@ def follow(update, context):
         if Database('data.db').check_favourites_stocks(user, context.args[0]):
             update.message.reply_text('Акция уже в избранном')
         else:
-            Database('data.db').add_favourites_stocks(user, context.args[0])
-            update.message.reply_text('Акция добавлена в избранное')
+            if context.args[0] in load_stocks('stocks.json')["stocks"]:
+                Database('data.db').add_favourites_stocks(user, context.args[0])
+                update.message.reply_text('Акция добавлена в избранное')
+            else:
+                update.message.reply_text('Акция не найдена')
 
 
 def notify_assignees(context):
