@@ -11,20 +11,20 @@ class Database:
 
     def setup(self):
         self.cur.execute("""CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY ON CONFLICT IGNORE NOT NULL,
-         chat_id INTEGER,first_name STRING, last_name STRING,
-         username STRING, favourites_stocks STRING, points INTEGER, daily_notify BOOLEAN);""")
+         first_name STRING, last_name STRING, username STRING, favourites_stocks STRING, points INTEGER,
+         daily_notify BOOLEAN);""")
         self.con.commit()
 
     def add_user(self, user: User):
-        self.cur.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
-                         (user.id, user.chat_id, user.first_name, user.last_name,
+        self.cur.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?);",
+                         (user.id, user.first_name, user.last_name,
                           user.username, None, user.points, False))
         self.con.commit()
 
     def get_users(self):
         users = self.cur.execute(f"SELECT * FROM users").fetchall()
-        return [User({'id': i[0], 'chat_id': i[1], 'first_name': i[2], 'last_name': i[3], 'username': i[4],
-                      'favourites_stocks': i[5], 'points': i[6]}) for i in users]
+        return [User({'id': i[0], 'first_name': i[1], 'last_name': i[2], 'username': i[3],
+                      'favourites_stocks': i[4], 'points': i[5]}) for i in users]
 
     def add_favourites_stocks(self, user: User, stock_name: str):
         stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()

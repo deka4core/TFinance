@@ -66,9 +66,7 @@ def get_stock_image(update, context):
 
 def start(update, context):
     user_data = update.effective_user
-    chat_id = update.message.chat_id
     user = User(user_data.to_dict())
-    user.chat_id = chat_id
     Database('data.db').add_user(user)
     update.message.reply_text(f"Привет {user.first_name}!")
 
@@ -116,7 +114,9 @@ def notify_assignees(context):
 
 def daily(update, context):
     user_data = update.effective_user
-    user_id = user_data.to_dict().get('id')
+    user = User(user_data.to_dict())
+    Database('data.db').add_user(user)
+    user_id = user.id
     if Database('data.db').check_user_daily_notify(user_id):
         update.message.reply_text(f'Ежедневная рассылка выключена')
     else:
