@@ -212,22 +212,22 @@ def game_results(context):
         for i in user.prediction.split():
             if i.split(":")[-1] == 'up':
                 if check_stock_prices(i.split(":")[0]):
-                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был верным. "
+                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
                                                                         f"\nВы получили 1 очко. "
                                                                         f"\nПосмотреть кол-во очков можно, "
                                                                         f"использовав /stats.")
                     db.add_point(user)
                 else:
-                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был неверным.")
+                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
             else:
                 if not check_stock_prices(i.split(":")[0]):
-                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был верным. "
+                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
                                                                         f"\nВы получили 1 очко. "
                                                                         f"\nПосмотреть кол-во очков можно, "
                                                                         f"использовав /stats.")
                     db.add_point(user)
                 else:
-                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был неверным.")
+                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
 
         # Удаляем пройденные прогнозы
         db.delete_predictions(user)
