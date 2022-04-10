@@ -84,7 +84,7 @@ def favourites(update, context):
     user_data = update.effective_user
     user = User(user_data.to_dict())
     stocks = Database('data.db').get_favourites_stocks(user)
-    if stocks:
+    if stocks and stocks[0]:
         update.message.reply_text(', '.join(stocks[0].split()))
     else:
         update.message.reply_text('У вас нет избранных акций')
@@ -102,6 +102,17 @@ def follow(update, context):
                 update.message.reply_text('Акция добавлена в избранное')
             else:
                 update.message.reply_text('Акция не найдена')
+
+
+def unfollow(update, context):
+    user_data = update.effective_user
+    user = User(user_data.to_dict())
+    if context.args[0]:
+        if not Database('data.db').check_favourites_stocks(user, context.args[0]):
+            update.message.reply_text('Акции нет в избранном')
+        else:
+            Database('data.db').remove_favourites_stock(user.id, context.args[0])
+            update.message.reply_text('Акция удалена из избранного')
 
 
 def notify_assignees(context):
@@ -212,22 +223,22 @@ def game_results(context):
         for i in user.prediction.split():
             if i.split(":")[-1] == 'up':
                 if check_stock_prices(i.split(":")[0]):
-                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был верным. "
+                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
                                                                         f"\nВы получили 1 очко. "
                                                                         f"\nПосмотреть кол-во очков можно, "
                                                                         f"использовав /stats.")
                     db.add_point(user)
                 else:
-                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был неверным.")
+                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
             else:
                 if not check_stock_prices(i.split(":")[0]):
-                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был верным. "
+                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
                                                                         f"\nВы получили 1 очко. "
                                                                         f"\nПосмотреть кол-во очков можно, "
                                                                         f"использовав /stats.")
                     db.add_point(user)
                 else:
-                    context.bot.send_message(chat_id=user.chat_id, text=f"Прогноз {i.split(':')[0]} был неверным.")
+                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
 
         # Удаляем пройденные прогнозы
         db.delete_predictions(user)
@@ -236,7 +247,10 @@ def game_results(context):
 
 def main():
     # обновление файла stocks.json
-    get_all_stocks()
+    try:
+        get_all_stocks()
+    except Exception as e:
+        print(e)
     # Создаём объект updater.
     updater = Updater(TOKEN)
     dispatcher = updater.dispatcher
@@ -258,6 +272,7 @@ def main():
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("favourites", favourites))
     dispatcher.add_handler(CommandHandler("follow", follow))
+    dispatcher.add_handler(CommandHandler("unfollow", unfollow))
     dispatcher.add_handler(CommandHandler("stock", get_stock_image))
     dispatcher.add_handler(CommandHandler("stocks", get_list_stocks))
     dispatcher.add_handler(CommandHandler("stats", stats))

@@ -10,10 +10,9 @@ class Database:
         self.setup()
 
     def setup(self):
-        self.cur.execute("""CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY ON CONFLICT IGNORE NOT NULL,
-         chat_id INTEGER,first_name STRING, last_name STRING,
-         username STRING, favourites_stocks STRING, prediction STRING, selected_stock STRING, points INTEGER, 
-         daily_notify BOOLEAN);""")
+        self.cur.execute("""CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY ON CONFLICT IGNORE NOT NULL, 
+        first_name STRING, last_name STRING, username STRING, favourites_stocks STRING, prediction STRING,
+        selected_stock STRING, points INTEGER, daily_notify BOOLEAN);""")
         self.con.commit()
 
     def add_user(self, user: User):
@@ -25,14 +24,8 @@ class Database:
     def get_users(self):
         users = self.cur.execute(f"SELECT * FROM users").fetchall()
         return [User({'id': i[0], 'first_name': i[1], 'last_name': i[2], 'username': i[3],
-                      'favourites_stocks': i[4], 'prediction': i[5], 'selected_stock': i[6], 'points': i[7]}) for i in users]
-
-    def add_favourites_stocks(self, user: User, stock_name: str):
-        stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
-        if stocks and stocks[0]:
-            stock_name = f'{stocks[0]} {stock_name}'
-        self.cur.execute(f"UPDATE users SET favourites_stocks = '{stock_name}' WHERE id = {user.id}")
-        self.con.commit()
+                      'favourites_stocks': i[4], 'prediction': i[5], 'selected_stock': i[6],
+                      'points': i[7]}) for i in users]
 
     def add_prediction(self, user: User, stock_name: str, updown: str):
         predictions = self.cur.execute(f"SELECT prediction FROM users WHERE id = {user.id}").fetchone()
@@ -49,8 +42,7 @@ class Database:
         return False
 
     def get_predictions(self, user: User):
-        data = self.cur.execute(
-            f"SELECT prediction FROM users WHERE id = {user.id}").fetchone()[0]
+        data = self.cur.execute(f"SELECT prediction FROM users WHERE id = {user.id}").fetchone()[0]
         return data
 
     def delete_predictions(self, user: User):
@@ -62,13 +54,20 @@ class Database:
         self.con.commit()
 
     def get_selected_stock(self, user) -> str:
-        data = self.cur.execute(
-            f"SELECT selected_stock FROM users WHERE id = {user.id}").fetchone()[0]
+        data = self.cur.execute(f"SELECT selected_stock FROM users WHERE id = {user.id}").fetchone()[0]
         return data
 
     def read_info(self, user):
-        data = self.cur.execute(f"SELECT username, favourites_stocks, points FROM users WHERE id = {user.id}").fetchone()
+        data = self.cur.execute(f"SELECT username, favourites_stocks,"
+                                f"points FROM users WHERE id = {user.id}").fetchone()
         return data
+
+    def add_favourites_stocks(self, user: User, stock_name: str):
+        stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
+        if stocks and stocks[0]:
+            stock_name = f'{stocks[0]} {stock_name}'
+        self.cur.execute(f"UPDATE users SET favourites_stocks = '{stock_name}' WHERE id = {user.id}")
+        self.con.commit()
 
     def check_favourites_stocks(self, user, stock_name: str):
         stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
@@ -80,12 +79,18 @@ class Database:
         stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
         return stocks
 
-    def add_point(self, user: User):
-        prev_num = self.cur.execute(
-            f"SELECT points FROM users WHERE id = {user.id}").fetchone()[0]
-        self.cur.execute(f"UPDATE users SET points = {prev_num + 1} WHERE id = {user.id}")
-        user.points += 1
-        self.con.commit()
+    def remove_favourites_stock(self, user_id, stock_name: str):
+        stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user_id}").fetchone()
+        if stocks[0]:
+            print(stocks[0])
+            a = stocks[0].split()
+            a.remove(stock_name)
+            if not a:
+                a = 'null'
+            else:
+                a = f"'{' '.join(a)}'"
+            self.cur.execute(f"UPDATE users SET favourites_stocks = {a} WHERE id = {user_id}")
+            self.con.commit()
 
     def user_daily_notify(self, user_id: int):
         self.cur.execute(f"UPDATE users SET daily_notify = NOT daily_notify WHERE id = {user_id}")
@@ -95,3 +100,9 @@ class Database:
         a = self.cur.execute(f"SELECT daily_notify FROM users WHERE id = {user_id}").fetchone()
         return bool(a[0])
 
+    def add_point(self, user: User):
+        prev_num = self.cur.execute(
+            f"SELECT points FROM users WHERE id = {user.id}").fetchone()[0]
+        self.cur.execute(f"UPDATE users SET points = {prev_num + 1} WHERE id = {user.id}")
+        user.points += 1
+        self.con.commit()
