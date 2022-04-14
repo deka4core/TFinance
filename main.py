@@ -92,10 +92,11 @@ def follow(update, context):
     user_data = update.effective_user
     user = User(user_data.to_dict())
     if context.args[0]:
+        context.args[0] = context.args[0].upper()
         if Database('data.db').check_favourites_stocks(user, context.args[0]):
             update.message.reply_text('Акция уже в избранном')
         else:
-            if check_stock(context.args[0].upper()):
+            if check_stock(context.args[0]):
                 Database('data.db').add_favourites_stocks(user, context.args[0])
                 update.message.reply_text('Акция добавлена в избранное')
             else:
@@ -106,6 +107,7 @@ def unfollow(update, context):
     user_data = update.effective_user
     user = User(user_data.to_dict())
     if context.args[0]:
+        context.args[0] = context.args[0].upper()
         if not Database('data.db').check_favourites_stocks(user, context.args[0]):
             update.message.reply_text('Акции нет в избранном')
         else:
