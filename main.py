@@ -6,7 +6,7 @@ import os
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from database import Database
 from graphics.visualize import pdr, check_stock_prices
-from telegram.ext import Updater, CommandHandler, ConversationHandler, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler, ConversationHandler, CallbackQueryHandler, MessageHandler, Filters
 from items import User
 # Импортируем токен из другого файла safety_key.py.
 from safety_key import TOKEN
@@ -69,7 +69,7 @@ def start(update, context):
     user_data = update.effective_user
     user = User(user_data.to_dict())
     Database('data.db').add_user(user)
-    update.message.reply_text(f"Привет {user.first_name}!")
+    update.message.reply_text(f"Привет, {user.first_name}! Теперь доступ к командам открыт.")
 
 
 def help(update, context):
@@ -159,7 +159,14 @@ def game_menu(update, context):
         user_data = update.effective_user
         user = User(user_data.to_dict())
         data = Database('data.db')
-        data.select_stock(user, context.args[0])
+        message_id = str(int(update.message.message_id) + 2)
+
+        if data.get_selected_stock(user, message_id):
+            update.message.reply_text("Выполните прежний прогноз, чтобы начать новый! "
+                                      "Чтобы отменить его нажмите выход.")
+            return ConversationHandler.END
+
+        data.select_stock(user, f"{context.args[0]}:{message_id}")
 
         if Database('data.db').check_prediction_stock(user, context.args[0]):
             update.message.reply_text("Прогноз на эту акцию уже установлен.")
@@ -167,9 +174,7 @@ def game_menu(update, context):
 
         keyboard = [[
                 InlineKeyboardButton("Повышение", callback_data=str(1)),
-                InlineKeyboardButton("Понижение", callback_data=str(2))],
-                [InlineKeyboardButton("Выход", callback_data=str(0))]
-            ]
+                InlineKeyboardButton("Понижение", callback_data=str(2))]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         update.message.reply_photo(photo=do_stock_image(context.args[0]))
         update.message.reply_text(text=f"Предугадайте курс {context.args[0]} на завтра.", reply_markup=reply_markup)
@@ -178,6 +183,9 @@ def game_menu(update, context):
         return ConversationHandler.END
     except TypeError:
         update.message.reply_text('Вас нет в бд, запустите команду /start чтобы исправить ошибку')
+    except KeyError:
+        update.message.reply_text(text="Такой акции не было найдено в данных Yahoo Finance.")
+        return ConversationHandler.END
 
     return 1
 
@@ -187,12 +195,15 @@ def higher_game(update, context):
     user_data = update.effective_user
     user = User(user_data.to_dict())
     data = Database('data.db')
-    data.add_prediction(user, data.get_selected_stock(user), 'up')
 
     query = update.callback_query
     query.answer()
+
+    message_id = query.message.message_id
+    data.add_prediction(user, data.get_selected_stock(user, message_id), 'up')
+    data.remove_selected_stock(user, message_id)
+
     query.edit_message_text(text="Предсказание установлено на повышение")
-    return ConversationHandler.END
 
 
 # Кнопка понижения акции
@@ -200,20 +211,15 @@ def lower_game(update, context):
     user_data = update.effective_user
     user = User(user_data.to_dict())
     data = Database('data.db')
-    data.add_prediction(user, data.get_selected_stock(user), 'down')
 
     query = update.callback_query
     query.answer()
+
+    message_id = query.message.message_id
+    data.add_prediction(user, data.get_selected_stock(user, message_id), 'down')
+    data.remove_selected_stock(user, message_id)
+
     query.edit_message_text(text="Предсказание установлено на понижение")
-    return ConversationHandler.END
-
-
-# Кнопка выхода из меню игры
-def exit_game_menu(update, context):
-    query = update.callback_query
-    query.answer()
-    query.edit_message_text(text="Прогноз отменен")
-    return ConversationHandler.END
 
 
 # Подсчитывает результаты игры
@@ -221,6 +227,8 @@ def game_results(context):
     db = Database('data.db')
     for user in db.get_users():
         for i in user.prediction.split():
+
+            # Проверяем прогноз
             if i.split(":")[-1] == 'up':
                 if check_stock_prices(i.split(":")[0]):
                     context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
@@ -262,8 +270,7 @@ def main():
 
     conv_handler = ConversationHandler(entry_points=[CommandHandler("game", game_menu)],
                                        states={1: [CallbackQueryHandler(higher_game, pattern=f"^1$"),
-                                                   CallbackQueryHandler(lower_game, pattern=f"^2$"),
-                                                   CallbackQueryHandler(exit_game_menu, pattern=f"^0$")]},
+                                                   CallbackQueryHandler(lower_game, pattern=f"^2$")]},
                                        fallbacks=[CommandHandler("game", game_menu)])
     dispatcher.add_handler(conv_handler)
     # Регистрируем обработчик команд.

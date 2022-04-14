@@ -50,12 +50,29 @@ class Database:
         self.con.commit()
 
     def select_stock(self, user: User, stock_name: str):
+        selected_stocks = self.cur.execute(f"SELECT selected_stock FROM users WHERE id = {user.id}").fetchone()[0]
+        if selected_stocks:
+            stock_name = f'{selected_stocks} {stock_name}'
         self.cur.execute(f"UPDATE users SET selected_stock = '{stock_name}' WHERE id = {user.id}")
         self.con.commit()
 
-    def get_selected_stock(self, user) -> str:
+    def get_selected_stock(self, user: User, message_id) -> str:
         data = self.cur.execute(f"SELECT selected_stock FROM users WHERE id = {user.id}").fetchone()[0]
-        return data
+        if data:
+            for i in data.split():
+                if str(message_id) == i.split(':')[-1]:
+                    return i.split(':')[0]
+
+    def remove_selected_stock(self, user: User, msg_id):
+        selected_stocks = self.cur.execute(f"SELECT selected_stock FROM"
+                                           f" users WHERE id = {user.id}").fetchone()[0].split()
+        for i in range(len(selected_stocks)):
+            if str(msg_id) == selected_stocks[i].split(':')[-1]:
+                del selected_stocks[i]
+                break
+        selected_stocks = ' '.join(selected_stocks)
+        self.cur.execute(f"UPDATE users SET selected_stock = '{selected_stocks}' WHERE id = {user.id}")
+        self.con.commit()
 
     def read_info(self, user):
         data = self.cur.execute(f"SELECT username, favourites_stocks,"
@@ -82,7 +99,6 @@ class Database:
     def remove_favourites_stock(self, user_id, stock_name: str):
         stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user_id}").fetchone()
         if stocks[0]:
-            print(stocks[0])
             a = stocks[0].split()
             a.remove(stock_name)
             if not a:
