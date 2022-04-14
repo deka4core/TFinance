@@ -3,6 +3,17 @@ import sqlite3
 from items import User
 
 
+def singleton(cls):
+    instance = [None]
+
+    def wrapper(*args, **kwargs):
+        if instance[0] is None:
+            instance[0] = cls(*args, **kwargs)
+        return instance[0]
+    return wrapper
+
+
+@singleton
 class Database:
     def __init__(self, db_name):
         self.con = sqlite3.connect(db_name)

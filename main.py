@@ -2,7 +2,6 @@ import logging
 import datetime
 import pytz
 import os
-
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from database import Database
 from graphics.visualize import pdr, check_stock_prices
@@ -11,10 +10,9 @@ from items import User
 # Импортируем токен из другого файла safety_key.py.
 from safety_key import TOKEN
 from graphics.visualize import do_stock_image
+from stock import load_stocks, get_all_stocks, check_stock
+
 # Запускаем логирование
-from stock import get_stock, load_stocks, get_all_stocks
-
-
 if not os.path.exists(f'{os.getcwd()}/logs'):
     os.mkdir(f'{os.getcwd()}/logs')
 logging.basicConfig(
@@ -66,6 +64,7 @@ def get_stock_image(update, context):
 
 
 def start(update, context):
+
     user_data = update.effective_user
     user = User(user_data.to_dict())
     Database('data.db').add_user(user)
@@ -96,7 +95,7 @@ def follow(update, context):
         if Database('data.db').check_favourites_stocks(user, context.args[0]):
             update.message.reply_text('Акция уже в избранном')
         else:
-            if context.args[0] in load_stocks('stocks.json')["stocks"]:
+            if check_stock(context.args[0].upper()):
                 Database('data.db').add_favourites_stocks(user, context.args[0])
                 update.message.reply_text('Акция добавлена в избранное')
             else:
@@ -115,14 +114,15 @@ def unfollow(update, context):
 
 
 def notify_assignees(context):
-    for user in Database('data.db').get_users():
-        if Database('data.db').check_user_daily_notify(user.id):
+    db = Database('data.db')
+    for user in db.get_users():
+        if db.check_user_daily_notify(user.id):
             if user.favourites_stocks:
                 for i in user.favourites_stocks.split():
                     try:
                         context.bot.send_photo(chat_id=user.id, photo=do_stock_image(i))
-                    except:
-                        print("Err")
+                    except Exception as e:
+                        print(e)
 
 
 def daily(update, context):
@@ -232,18 +232,18 @@ def game_results(context):
             if i.split(":")[-1] == 'up':
                 if check_stock_prices(i.split(":")[0]):
                     context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
-                                                                        f"\nВы получили 1 очко. "
-                                                                        f"\nПосмотреть кол-во очков можно, "
-                                                                        f"использовав /stats.")
+                                                                   f"\nВы получили 1 очко. "
+                                                                   f"\nПосмотреть кол-во очков можно, "
+                                                                   f"использовав /stats.")
                     db.add_point(user)
                 else:
                     context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
             else:
                 if not check_stock_prices(i.split(":")[0]):
                     context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
-                                                                        f"\nВы получили 1 очко. "
-                                                                        f"\nПосмотреть кол-во очков можно, "
-                                                                        f"использовав /stats.")
+                                                                   f"\nВы получили 1 очко. "
+                                                                   f"\nПосмотреть кол-во очков можно, "
+                                                                   f"использовав /stats.")
                     db.add_point(user)
                 else:
                     context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
@@ -254,16 +254,11 @@ def game_results(context):
 
 
 def main():
-    # обновление файла stocks.json
-    try:
-        get_all_stocks()
-    except Exception as e:
-        print(e)
     # Создаём объект updater.
     updater = Updater(TOKEN)
     dispatcher = updater.dispatcher
     job_queue = updater.job_queue
-    t = datetime.time(hour=8, tzinfo=pytz.timezone('Europe/Moscow'))
+    t = datetime.time(hour=20, minute=19, second=40, tzinfo=pytz.timezone('Europe/Moscow'))
     job_queue.run_daily(notify_assignees, t)
     job_queue.run_daily(game_results,
                         datetime.time(hour=3, tzinfo=pytz.timezone('Europe/Moscow')))
