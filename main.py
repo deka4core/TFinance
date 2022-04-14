@@ -1,26 +1,25 @@
 import logging
 import datetime
 import pytz
+import os
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
-
 from database import Database
 from graphics.visualize import pdr, check_stock_prices
 from telegram.ext import Updater, CommandHandler, ConversationHandler, CallbackQueryHandler
-
 from items import User
-
 # Импортируем токен из другого файла safety_key.py.
 from safety_key import TOKEN
-
 from graphics.visualize import do_stock_image
-
 # Запускаем логирование
 from stock import get_stock, load_stocks, get_all_stocks
 
+
+if not os.path.exists(f'{os.getcwd()}/logs'):
+    os.mkdir(f'{os.getcwd()}/logs')
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
-    filename="./logs/tfinance_main.log")
+    filename=f"{os.getcwd()}/logs/tfinance_main.log")
 logger = logging.getLogger(__name__)
 
 
@@ -118,11 +117,12 @@ def unfollow(update, context):
 def notify_assignees(context):
     for user in Database('data.db').get_users():
         if Database('data.db').check_user_daily_notify(user.id):
-            for i in user.favourites_stocks.split():
-                try:
-                    context.bot.send_photo(chat_id=user.id, photo=do_stock_image(i))
-                except:
-                    print("Err")
+            if user.favourites_stocks:
+                for i in user.favourites_stocks.split():
+                    try:
+                        context.bot.send_photo(chat_id=user.id, photo=do_stock_image(i))
+                    except:
+                        print("Err")
 
 
 def daily(update, context):
