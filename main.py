@@ -10,7 +10,7 @@ from items import User
 # Импортируем токен из другого файла safety_key.py.
 from safety_key import TOKEN
 from graphics.visualize import do_stock_image
-from stock import load_stocks, get_all_stocks, check_stock
+from stock import check_stock
 
 # Запускаем логирование
 if not os.path.exists(f'{os.getcwd()}/logs'):
