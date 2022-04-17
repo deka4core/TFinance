@@ -91,8 +91,11 @@ def start(update, _):
 def help(update, _):
     update.message.reply_text("/stocks [количество акций] Например: /stocks 100 - посмотреть первые 100 акций\n"
                               "/stocks all - посмотреть все акции на бирже\n"
-                              "/stocks [буква алфавита] Например: /stocks A - посмотреть все акции, "
-                              "название которых начинается с 'A'")
+                              "/stocks [буква алфавита] Например: /stocks A -"
+                              "посмотреть все акции,название которых начинается с 'A'\n"
+                              "/follow [stock_name] - добавить акцию в избранное\n"
+                              "/unfollow [stock_name] - удалить акцию из избранного\n"
+                              "/favourites - посмотреть список избранных акций\n")
 
 
 # Обработчик команды /favourites. Отправляет список любимых акций.
@@ -141,9 +144,8 @@ def unfollow(update, context):
 
 # Ежедневная рассылка избранных акций.
 def notify_assignees(context):
-    db = Database('data.db')
-    for user in db.get_users():  # Перебираем всех пользователей и рассылаем каждому курсы их избранных акций.
-        if db.check_user_daily_notify(user.id):
+    for user in Database('data.db').get_users():  # Перебираем всех пользователей и рассылаем каждому курсы их избранных акций.
+        if Database('data.db').check_user_daily_notify(user.id):
             if user.favourites_stocks:
                 for i in user.favourites_stocks.split():
                     try:
@@ -294,10 +296,8 @@ def main():
     job_queue = updater.job_queue
 
     # Ежедневные задачи.
-    t = datetime.time(hour=20, minute=19, second=40, tzinfo=pytz.timezone('Europe/Moscow'))
-    job_queue.run_daily(notify_assignees, t)
-    job_queue.run_daily(game_results,
-                        datetime.time(hour=3, tzinfo=pytz.timezone('Europe/Moscow')))
+    job_queue.run_daily(notify_assignees, datetime.time(hour=8, tzinfo=pytz.timezone('Europe/Moscow')))
+    job_queue.run_daily(game_results, datetime.time(hour=3, tzinfo=pytz.timezone('Europe/Moscow')))
 
     # ConversationHandler для игры.
     game_handler = ConversationHandler(entry_points=[CommandHandler("game", game_menu)],
