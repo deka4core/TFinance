@@ -144,9 +144,8 @@ def unfollow(update, context):
 
 # Ежедневная рассылка избранных акций.
 def notify_assignees(context):
-    db = Database('data.db')
-    for user in db.get_users():  # Перебираем всех пользователей и рассылаем каждому курсы их избранных акций.
-        if db.check_user_daily_notify(user.id):
+    for user in Database('data.db').get_users():  # Перебираем всех пользователей и рассылаем каждому курсы их избранных акций.
+        if Database('data.db').check_user_daily_notify(user.id):
             if user.favourites_stocks:
                 for i in user.favourites_stocks.split():
                     try:
@@ -297,10 +296,8 @@ def main():
     job_queue = updater.job_queue
 
     # Ежедневные задачи.
-    t = datetime.time(hour=20, minute=19, second=40, tzinfo=pytz.timezone('Europe/Moscow'))
-    job_queue.run_daily(notify_assignees, t)
-    job_queue.run_daily(game_results,
-                        datetime.time(hour=3, tzinfo=pytz.timezone('Europe/Moscow')))
+    job_queue.run_daily(notify_assignees, datetime.time(hour=8, tzinfo=pytz.timezone('Europe/Moscow')))
+    job_queue.run_daily(game_results, datetime.time(hour=3, tzinfo=pytz.timezone('Europe/Moscow')))
 
     # ConversationHandler для игры.
     game_handler = ConversationHandler(entry_points=[CommandHandler("game", game_menu)],
