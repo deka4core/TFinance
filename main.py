@@ -258,25 +258,30 @@ def game_results(context):
     for user in db.get_users():
         for i in user.prediction.split():
             # Проверка прогноза
-            if i.split(":")[-1] == 'up':
-                if check_stock_prices(i.split(":")[0]):
-                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
-                                                                   f"\nВы получили 1 очко. "
-                                                                   f"\nПосмотреть кол-во очков можно, "
-                                                                   f"использовав /stats.")
-                    db.add_point(user)
+            try:
+                if i.split(":")[-1] == 'up':
+                    if check_stock_prices(i.split(":")[0]):
+                        context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
+                                                                       f"\nВы получили 1 очко. "
+                                                                       f"\nПосмотреть кол-во очков можно, "
+                                                                       f"использовав /stats.")
+                        db.add_point(user)
+                    else:
+                        context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
                 else:
-                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
-            else:
-                if not check_stock_prices(i.split(":")[0]):
-                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
-                                                                   f"\nВы получили 1 очко. "
-                                                                   f"\nПосмотреть кол-во очков можно, "
-                                                                   f"использовав /stats.")
-                    db.add_point(user)
-                else:
-                    context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
-
+                    if not check_stock_prices(i.split(":")[0]):
+                        context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был верным. "
+                                                                       f"\nВы получили 1 очко. "
+                                                                       f"\nПосмотреть кол-во очков можно, "
+                                                                       f"использовав /stats.")
+                        db.add_point(user)
+                    else:
+                        context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
+            except KeyError:
+                # Если биржа перестанет работать, по непонятным нам причинам, то удалятся прошлые прогнозы.
+                db.db.delete_predictions(user)
+                context.bot.send_message(chat_id=user.id, text=f"На данный момент к бирже нет доступа. "
+                                                               f"Прогноз на акцию {i.split(':')[0]} был отменен.")
         # Удаляем пройденные прогнозы
         db.delete_predictions(user)
         user.prediction = db.get_predictions(user)
