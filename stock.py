@@ -28,7 +28,7 @@ def check_stock(stock_name):
 
 def save_stocks(file_name, stocks: list):
     wd = os.getcwd()
-    with open(f'{wd}/{file_name}', "w") as f: 
+    with open(f'{wd}/{file_name}', "w") as f:
         json.dump({'stocks': stocks}, f)
 
 
