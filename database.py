@@ -67,12 +67,22 @@ class Database:
         self.cur.execute(f"UPDATE users SET selected_stock = '{stock_name}' WHERE id = {user.id}")
         self.con.commit()
 
-    def get_selected_stock(self, user: User, message_id) -> str:
+    def get_selected_stock_byid(self, user: User, message_id) -> str:
         data = self.cur.execute(f"SELECT selected_stock FROM users WHERE id = {user.id}").fetchone()[0]
         if data:
             for i in data.split():
                 if str(message_id) == i.split(':')[-1]:
                     return i.split(':')[0]
+
+    def get_selected_stocks(self, user: User) -> list:
+        data = self.cur.execute(f"SELECT selected_stock FROM users WHERE id = {user.id}").fetchone()[0]
+        return data.split()
+
+    def check_selected_stocks(self, user: User) -> bool:
+        stocks = self.cur.execute(f"SELECT selected_stock FROM users WHERE id = {user.id}").fetchone()[0]
+        if stocks:
+            return True
+        return False
 
     def remove_selected_stock(self, user: User, msg_id):
         selected_stocks = self.cur.execute(f"SELECT selected_stock FROM"

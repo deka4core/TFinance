@@ -13,6 +13,7 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, ConversationHandler, CallbackQueryHandler
 
 # Работа с акциями (загрузка, вывод, проверка, игра, визуализация).
+from game import StockSelectedAlready, PredictionAlreadySet
 from graphics.visualize import do_stock_image, pdr, \
     check_stock_prices
 from stock import check_stock, load_stocks, get_all_stocks
@@ -185,18 +186,21 @@ def game_menu(update, context):
     try:
         if not context.args:
             update.message.reply_text("Неправильно введена команда! Попробуйте: /game [индекс акции]")
-            return ConversationHandler.END
 
         user_data = update.effective_user
         user = User(user_data.to_dict())
         message_id = str(int(update.message.message_id) + 2)  # Сохраняем id сообщения для возможности одновременной
         # игры на многих акциях. Прибавляем 2 т.к. отправляем 2 сообщения: фото и приписку к нему с клавиатурой.
 
+        if db.check_selected_stocks(user):
+            for stock in db.get_selected_stocks(user):
+                if context.args[0] in stock:
+                    raise StockSelectedAlready
+
         db.select_stock(user, f"{context.args[0]}:{message_id}")  # Запоминаем, что акция была выбрана.
 
         if db.check_prediction_stock(user, context.args[0]):  # Избегаем читерства.
-            update.message.reply_text("Прогноз на эту акцию уже установлен.")
-            return ConversationHandler.END
+            raise PredictionAlreadySet
 
         # Создание клавиатуры и отправка ответа.
         keyboard = [[
@@ -207,12 +211,18 @@ def game_menu(update, context):
         update.message.reply_text(text=f"Предугадайте курс {context.args[0]} на завтра.", reply_markup=reply_markup)
     except pdr._utils.RemoteDataError:
         update.message.reply_text(text="Такой акции не было найдено в данных Yahoo Finance.")
-        return ConversationHandler.END
+        db.remove_selected_stock(user, message_id)
     except TypeError:
         update.message.reply_text('Вас нет в бд, запустите команду /start чтобы исправить ошибку')
     except KeyError:
         update.message.reply_text(text="Такой акции не было найдено в данных Yahoo Finance.")
-        return ConversationHandler.END
+        db.remove_selected_stock(user, message_id)
+    except StockSelectedAlready:
+        update.message.reply_text(text="Эта акция уже была вами выбрана.")
+        db.remove_selected_stock(user, message_id)
+    except PredictionAlreadySet:
+        update.message.reply_text(text="Прогноз на эту акцию уже установлен.")
+        db.remove_selected_stock(user, message_id)
 
     return 1  # Возвращаем 1, чтобы показать ConversationHandler'у состояние, в котором находимся.
 
@@ -227,7 +237,7 @@ def higher_game(update, _):
     query.answer()
 
     message_id = query.message.message_id  # Получаем id сообщения, для нахождения нужной сессии игры.
-    db.add_prediction(user, db.get_selected_stock(user, message_id), 'up')  # Устанавливаем прогноз на акцию.
+    db.add_prediction(user, db.get_selected_stock_byid(user, message_id), 'up')  # Устанавливаем прогноз на акцию.
     db.remove_selected_stock(user, message_id)  # Удаляем акцию из выбранных.
 
     query.edit_message_text(text="Предсказание установлено на повышение")  # Редактируем сообщение с клавиатурой.
@@ -243,7 +253,7 @@ def lower_game(update, _):
     query.answer()
 
     message_id = query.message.message_id  # Получаем id сообщения, для нахождения нужной сессии игры.
-    db.add_prediction(user, db.get_selected_stock(user, message_id), 'down')  # Устанавливаем прогноз на акцию.
+    db.add_prediction(user, db.get_selected_stock_byid(user, message_id), 'down')  # Устанавливаем прогноз на акцию.
     db.remove_selected_stock(user, message_id)  # Удаляем акцию из выбранных.
 
     query.edit_message_text(text="Предсказание установлено на понижение")  # Редактируем сообщение с клавиатурой.
@@ -251,7 +261,6 @@ def lower_game(update, _):
 
 # Подсчет результатов игры.
 def game_results(context):
-
     for user in db.get_users():
         for i in user.prediction.split():
             # Проверка прогноза
@@ -300,7 +309,7 @@ def main():
     # Ежедневные задачи.
     job_queue.run_daily(notify_assignees, datetime.time(hour=8, tzinfo=pytz.timezone('Europe/Moscow')))
     job_queue.run_daily(game_results, datetime.time(hour=3, tzinfo=pytz.timezone('Europe/Moscow')))
-    # job_queue.run_once(game_results, 5) для теста игры
+    # job_queue.run_once(game_results, 5) # для теста игры
 
     # ConversationHandler для игры.
     game_handler = ConversationHandler(entry_points=[CommandHandler("game", game_menu)],
@@ -326,5 +335,5 @@ def main():
 
 
 if __name__ == '__main__':
-    db = Database('data.db')
+    db: Database = Database('data.db')
     main()
