@@ -83,7 +83,7 @@ def get_stock_image(update, context):
 def start(update, _):
     user_data = update.effective_user
     user = User(user_data.to_dict())
-    Database('data.db').add_user(user)
+    db.add_user(user)
     update.message.reply_text(f"Привет, {user.first_name}! Теперь доступ к командам открыт.")
 
 
@@ -102,7 +102,7 @@ def help(update, _):
 def favourites(update, _):
     user_data = update.effective_user
     user = User(user_data.to_dict())
-    stocks = Database('data.db').get_favourites_stocks(user)
+    stocks = db.get_favourites_stocks(user)
     if stocks and stocks[0]:
         update.message.reply_text(', '.join(stocks[0].split()))
     else:
@@ -115,11 +115,11 @@ def follow(update, context):
     user = User(user_data.to_dict())
     if context.args[0]:
         context.args[0] = context.args[0].upper()
-        if Database('data.db').check_favourites_stocks(user, context.args[0]):
+        if db.check_favourites_stocks(user, context.args[0]):
             update.message.reply_text('Акция уже в избранном')
         else:
             if check_stock(context.args[0]):
-                Database('data.db').add_favourites_stocks(user, context.args[0])
+                db.add_favourites_stocks(user, context.args[0])
                 update.message.reply_text('Акция добавлена в избранное')
             else:
                 update.message.reply_text('Акция не найдена')
@@ -133,10 +133,10 @@ def unfollow(update, context):
     user = User(user_data.to_dict())
     if context.args[0]:
         context.args[0] = context.args[0].upper()
-        if not Database('data.db').check_favourites_stocks(user, context.args[0]):
+        if not db.check_favourites_stocks(user, context.args[0]):
             update.message.reply_text('Акции нет в избранном')
         else:
-            Database('data.db').remove_favourites_stock(user, context.args[0])
+            db.remove_favourites_stock(user, context.args[0])
             update.message.reply_text('Акция удалена из избранного')
     else:
         update.message.reply_text('Неверный способ ввода. /unfollow [индекс акции].')
@@ -145,8 +145,8 @@ def unfollow(update, context):
 # Ежедневная рассылка избранных акций.
 def notify_assignees(context):
     # Перебираем всех пользователей и рассылаем каждому курсы их избранных акций.
-    for user in Database('data.db').get_users():
-        if Database('data.db').check_user_daily_notify(user.id):
+    for user in db.get_users():
+        if db.check_user_daily_notify(user.id):
             if user.favourites_stocks:
                 for i in user.favourites_stocks.split():
                     try:
@@ -159,19 +159,19 @@ def notify_assignees(context):
 def daily(update, _):
     user_data = update.effective_user
     user = User(user_data.to_dict())
-    Database('data.db').add_user(user)
-    if Database('data.db').check_user_daily_notify(user):
+    db.add_user(user)
+    if db.check_user_daily_notify(user):
         update.message.reply_text(f'Ежедневная рассылка выключена')
     else:
         update.message.reply_text(f'Ежедневная рассылка включена')
-    Database('data.db').user_daily_notify(user)
+    db.user_daily_notify(user)
 
 
 # Обработчик команды /stats. Вывод статистики пользователя из БД.
 def stats(update, _):
     user_data = update.effective_user
     user = User(user_data.to_dict())
-    data = Database('data.db').read_info(user)
+    data = db.read_info(user)
     try:
         update.message.reply_text(f'UserName: {data[0]}\nИзбранные акции:'
                                   f' {", ".join(data[1].split()) if data[1] else None}'
@@ -189,13 +189,12 @@ def game_menu(update, context):
 
         user_data = update.effective_user
         user = User(user_data.to_dict())
-        data = Database('data.db')
         message_id = str(int(update.message.message_id) + 2)  # Сохраняем id сообщения для возможности одновременной
         # игры на многих акциях. Прибавляем 2 т.к. отправляем 2 сообщения: фото и приписку к нему с клавиатурой.
 
-        data.select_stock(user, f"{context.args[0]}:{message_id}")  # Запоминаем, что акция была выбрана.
+        db.select_stock(user, f"{context.args[0]}:{message_id}")  # Запоминаем, что акция была выбрана.
 
-        if Database('data.db').check_prediction_stock(user, context.args[0]):  # Избегаем читерства.
+        if db.check_prediction_stock(user, context.args[0]):  # Избегаем читерства.
             update.message.reply_text("Прогноз на эту акцию уже установлен.")
             return ConversationHandler.END
 
@@ -222,15 +221,14 @@ def game_menu(update, context):
 def higher_game(update, _):
     user_data = update.effective_user
     user = User(user_data.to_dict())
-    data = Database('data.db')
 
     # Обработка и ответ на колл-бэк.
     query = update.callback_query
     query.answer()
 
     message_id = query.message.message_id  # Получаем id сообщения, для нахождения нужной сессии игры.
-    data.add_prediction(user, data.get_selected_stock(user, message_id), 'up')  # Устанавливаем прогноз на акцию.
-    data.remove_selected_stock(user, message_id)  # Удаляем акцию из выбранных.
+    db.add_prediction(user, db.get_selected_stock(user, message_id), 'up')  # Устанавливаем прогноз на акцию.
+    db.remove_selected_stock(user, message_id)  # Удаляем акцию из выбранных.
 
     query.edit_message_text(text="Предсказание установлено на повышение")  # Редактируем сообщение с клавиатурой.
 
@@ -239,22 +237,21 @@ def higher_game(update, _):
 def lower_game(update, _):
     user_data = update.effective_user
     user = User(user_data.to_dict())
-    data = Database('data.db')
 
     # Обработка и ответ на колл-бэк.
     query = update.callback_query
     query.answer()
 
     message_id = query.message.message_id  # Получаем id сообщения, для нахождения нужной сессии игры.
-    data.add_prediction(user, data.get_selected_stock(user, message_id), 'down')  # Устанавливаем прогноз на акцию.
-    data.remove_selected_stock(user, message_id)  # Удаляем акцию из выбранных.
+    db.add_prediction(user, db.get_selected_stock(user, message_id), 'down')  # Устанавливаем прогноз на акцию.
+    db.remove_selected_stock(user, message_id)  # Удаляем акцию из выбранных.
 
     query.edit_message_text(text="Предсказание установлено на понижение")  # Редактируем сообщение с клавиатурой.
 
 
 # Подсчет результатов игры.
 def game_results(context):
-    db = Database('data.db')
+
     for user in db.get_users():
         for i in user.prediction.split():
             # Проверка прогноза
@@ -329,4 +326,5 @@ def main():
 
 
 if __name__ == '__main__':
+    db = Database('data.db')
     main()
