@@ -303,6 +303,7 @@ def main():
     # Ежедневные задачи.
     job_queue.run_daily(notify_assignees, datetime.time(hour=8, tzinfo=pytz.timezone('Europe/Moscow')))
     job_queue.run_daily(game_results, datetime.time(hour=3, tzinfo=pytz.timezone('Europe/Moscow')))
+    # job_queue.run_once(game_results, 5) для теста игры
 
     # ConversationHandler для игры.
     game_handler = ConversationHandler(entry_points=[CommandHandler("game", game_menu)],
