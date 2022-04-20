@@ -8,15 +8,15 @@ import requests
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0'}
 
 
-def load_stocks(file_name) -> list:
+def load_stocks(file_name: str) -> dict:
     wd = os.getcwd()
     if os.path.exists(f'{wd}/{file_name}'):
         with open(f'{wd}/{file_name}') as f:
             return json.load(f)
-    return []
+    return {}
 
 
-def check_stock(stock_name):
+def check_stock(stock_name: str) -> bool:
     try:
         current_date = datetime.datetime.today()
         p_date = datetime.datetime.today() - datetime.timedelta(days=30)
@@ -26,7 +26,7 @@ def check_stock(stock_name):
         return False
 
 
-def save_stocks(file_name, stocks: list):
+def save_stocks(file_name: str, stocks: list):
     wd = os.getcwd()
     with open(f'{wd}/{file_name}', "w") as f:
         json.dump({'stocks': stocks}, f)

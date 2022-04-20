@@ -15,7 +15,7 @@ def singleton(cls):
 
 @singleton
 class Database:
-    def __init__(self, db_name):
+    def __init__(self, db_name: str):
         self.con = sqlite3.connect(db_name, check_same_thread=False)
         self.cur = self.con.cursor()
         self.setup()
@@ -32,7 +32,7 @@ class Database:
                           user.username, None, None, None, user.points, False))
         self.con.commit()
 
-    def get_users(self):
+    def get_users(self) -> [User]:
         users = self.cur.execute(f"SELECT * FROM users").fetchall()
         return [User({'id': i[0], 'first_name': i[1], 'last_name': i[2], 'username': i[3],
                       'favourites_stocks': i[4], 'prediction': i[5], 'selected_stock': i[6],
@@ -46,7 +46,7 @@ class Database:
         self.cur.execute(f"UPDATE users SET prediction = ' {prediction}' WHERE id = {user.id}")
         self.con.commit()
 
-    def check_prediction_stock(self, user: User, stock_name: str):
+    def check_prediction_stock(self, user: User, stock_name: str) -> bool:
         stocks = self.cur.execute(f"SELECT prediction FROM users WHERE id = {user.id}").fetchone()
         if stocks[0] and stock_name in stocks[0]:
             return True
@@ -85,7 +85,7 @@ class Database:
         self.cur.execute(f"UPDATE users SET selected_stock = '{selected_stocks}' WHERE id = {user.id}")
         self.con.commit()
 
-    def read_info(self, user):
+    def read_info(self, user: User) -> tuple:
         data = self.cur.execute(f"SELECT username, favourites_stocks,"
                                 f"points FROM users WHERE id = {user.id}").fetchone()
         return data
@@ -97,7 +97,7 @@ class Database:
         self.cur.execute(f"UPDATE users SET favourites_stocks = '{stock_name}' WHERE id = {user.id}")
         self.con.commit()
 
-    def check_favourites_stocks(self, user, stock_name: str):
+    def check_favourites_stocks(self, user: User, stock_name: str) -> bool:
         stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
         if stocks[0] and stock_name in stocks[0].split():
             return True
@@ -107,8 +107,8 @@ class Database:
         stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
         return stocks
 
-    def remove_favourites_stock(self, user_id, stock_name: str):
-        stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user_id}").fetchone()
+    def remove_favourites_stock(self, user: User, stock_name: str):
+        stocks = self.cur.execute(f"SELECT favourites_stocks FROM users WHERE id = {user.id}").fetchone()
         if stocks[0]:
             a = stocks[0].split()
             a.remove(stock_name)
@@ -116,15 +116,15 @@ class Database:
                 a = 'null'
             else:
                 a = f"'{' '.join(a)}'"
-            self.cur.execute(f"UPDATE users SET favourites_stocks = {a} WHERE id = {user_id}")
+            self.cur.execute(f"UPDATE users SET favourites_stocks = {a} WHERE id = {user.id}")
             self.con.commit()
 
-    def user_daily_notify(self, user_id: int):
-        self.cur.execute(f"UPDATE users SET daily_notify = NOT daily_notify WHERE id = {user_id}")
+    def user_daily_notify(self, user: User):
+        self.cur.execute(f"UPDATE users SET daily_notify = NOT daily_notify WHERE id = {user.id}")
         self.con.commit()
 
-    def check_user_daily_notify(self, user_id: int) -> bool:
-        a = self.cur.execute(f"SELECT daily_notify FROM users WHERE id = {user_id}").fetchone()
+    def check_user_daily_notify(self, user: User) -> bool:
+        a = self.cur.execute(f"SELECT daily_notify FROM users WHERE id = {user.id}").fetchone()
         return bool(a[0])
 
     def add_point(self, user: User):
