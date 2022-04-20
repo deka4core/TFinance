@@ -136,7 +136,7 @@ def unfollow(update, context):
         if not Database('data.db').check_favourites_stocks(user, context.args[0]):
             update.message.reply_text('Акции нет в избранном')
         else:
-            Database('data.db').remove_favourites_stock(user.id, context.args[0])
+            Database('data.db').remove_favourites_stock(user, context.args[0])
             update.message.reply_text('Акция удалена из избранного')
     else:
         update.message.reply_text('Неверный способ ввода. /unfollow [индекс акции].')
@@ -144,7 +144,8 @@ def unfollow(update, context):
 
 # Ежедневная рассылка избранных акций.
 def notify_assignees(context):
-    for user in Database('data.db').get_users():  # Перебираем всех пользователей и рассылаем каждому курсы их избранных акций.
+    # Перебираем всех пользователей и рассылаем каждому курсы их избранных акций.
+    for user in Database('data.db').get_users():
         if Database('data.db').check_user_daily_notify(user.id):
             if user.favourites_stocks:
                 for i in user.favourites_stocks.split():
@@ -159,12 +160,11 @@ def daily(update, _):
     user_data = update.effective_user
     user = User(user_data.to_dict())
     Database('data.db').add_user(user)
-    user_id = user.id
-    if Database('data.db').check_user_daily_notify(user_id):
+    if Database('data.db').check_user_daily_notify(user):
         update.message.reply_text(f'Ежедневная рассылка выключена')
     else:
         update.message.reply_text(f'Ежедневная рассылка включена')
-    Database('data.db').user_daily_notify(user_id)
+    Database('data.db').user_daily_notify(user)
 
 
 # Обработчик команды /stats. Вывод статистики пользователя из БД.
@@ -279,7 +279,7 @@ def game_results(context):
                         context.bot.send_message(chat_id=user.id, text=f"Прогноз {i.split(':')[0]} был неверным.")
             except KeyError:
                 # Если биржа перестанет работать, по непонятным нам причинам, то удалятся прошлые прогнозы.
-                db.db.delete_predictions(user)
+                db.delete_predictions(user)
                 context.bot.send_message(chat_id=user.id, text=f"На данный момент к бирже нет доступа. "
                                                                f"Прогноз на акцию {i.split(':')[0]} был отменен.")
         # Удаляем пройденные прогнозы
