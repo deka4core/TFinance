@@ -4,8 +4,13 @@ import datetime
 import matplotlib.pyplot as plt
 
 
-# Функция создания графика акции, принимающая её индекс на рынке Yahoo Finance.
 def do_stock_image(stock_name, delta=30):
+    """
+        Создание графика акции.
+    :param stock_name: Строка, содержащая индекс названия акции.
+    :param delta: Интервал между датой начала и конца отслеживания курса.
+    :return: Картинка в байтовом формате.
+    """
     # Берём две даты: нынешнюю и 30 дней назад.
     current_date = datetime.datetime.today()
     p_date = datetime.datetime.today() - datetime.timedelta(days=delta)
@@ -31,6 +36,12 @@ def do_stock_image(stock_name, delta=30):
 
 
 def check_stock_prices(stock_name, delta=2) -> bool:
+    """
+        Получить информацию об изменении курса акции.
+    :param stock_name: Строка, содержащая индекс названия акции.
+    :param delta: Интервал между датой начала и конца отслеживания курса.
+    :return: Булево значение в результате сравнения цен.
+    """
     current_date = datetime.datetime.today()
     p_date = datetime.datetime.today() - datetime.timedelta(days=delta)
 
