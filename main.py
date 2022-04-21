@@ -147,7 +147,7 @@ def unfollow(update, context):
 def notify_assignees(context):
     # Перебираем всех пользователей и рассылаем каждому курсы их избранных акций.
     for user in db.get_users():
-        if db.check_user_daily_notify(user.id):
+        if db.check_user_daily_notify(user):
             if user.favourites_stocks:
                 for i in user.favourites_stocks.split():
                     try:
