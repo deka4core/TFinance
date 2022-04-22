@@ -1,3 +1,59 @@
-# TFinance [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/deka4core/StaticMapApi.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/deka4core/StaticMapApi/context:python) [![Total alerts](https://img.shields.io/lgtm/alerts/g/deka4core/StaticMapApi.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/deka4core/StaticMapApi/alerts/) ![Lines of code](https://img.shields.io/tokei/lines/github.com/deka4core/TFinance) ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/deka4core/TFinance) ![Pull requests](https://img.shields.io/static/v1?label=PR&message=Welcome&color=orange)
+# TFinance 
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/deka4core/StaticMapApi.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/deka4core/StaticMapApi/context:python) [![Total alerts](https://img.shields.io/lgtm/alerts/g/deka4core/StaticMapApi.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/deka4core/StaticMapApi/alerts/) ![Lines of code](https://img.shields.io/tokei/lines/github.com/deka4core/TFinance) ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/deka4core/TFinance) ![Pull requests](https://img.shields.io/static/v1?label=PR&message=Welcome&color=orange)
 
-Average team project. Here we work with such libraries as telegram-bot-api, mathplotlib and etc.
+![Image](https://repository-images.githubusercontent.com/478225356/c75529db-2963-4a22-95cd-3512411cb8c2)
+
+Проект: Telegram bot TFinace
+
+TFinance - телеграм бот, позволяющий получить доступ к курсу 
+акций. На понравившиеся вам акции вы можете подписаться и включить ежедненую
+рассылку их курса. Также вы можете попытать удачу и сыграть в игру, предугодав 
+будущий курс, в случае удачи вы заработаете 1 очко в криптоигре.
+
+<h2>Задачи, которые мы выполнили:</h2>
+    <ul>
+    <li>Использовали базу данных и orm для работы с ней.БД служит для хранения
+	информации о пользователе (избранные акции, кол-во очков и прочее).</li>
+    <li>Использовали команду /help для получения данных о боте.</li>
+    <li>Использовали команду /stats для вывода информации о пользователе(кол-во
+	очков, избранные акции и количество очков за криптоигру).</li>
+    <li>Реализовали криптоигру командой /game. С помощью этой команды вы можете 
+	сделать ставку на любую акцию и через день узнать результат.</li>
+    <li>Использовали команду /favourites для вывода списка избранных акций.</li>
+    <li>Использовали команду /follow для подписки на акцию.</li>
+    <li>Использовали команду /unfollow для отписки от акции.</li>
+    <li>Использовали команду /stock для вывода курса акции.</li>
+    <li>Использовали команду /stocks для вывода акций с биржи.</li>
+    <li>Использовали команду /daily для подписки на ежедненую расслылку курсов 
+	избранных акций.</li>
+    <li>Получение списка акций с биржи с помощью http-запросов.</li>
+    </ul>
+
+<h2>Возможности, которые мы хотели бы добавить:</h2>
+<ul><li>Игра, в которой ставкой будут являться очки пользователя.</li><li>Таблица лидеров по результатам игры</li>
+<li> Уведомление пользователя если цена достигнет критической точки.</li></ul>
+	
+
+    Если Вы хотите помочь с разработкой проекта, ждем ваши Pull Requests. 
+<h2>Подробнее о Yahoo Finance</h2>
+    Биржа Yahoo Finance - провайдер финансовой информации принадлежащий Yahoo! 
+    Один из главных поставщиков подобной информации в США с около 70 миллионов 
+    посетителей на май 2018 года по данным eBizMBA. Yahoo! Finance предоставляет 
+    новости и справочную информацию по темам, связанным с бизнесом, финансами и 
+    экономикой. Справочная информация включает в себя котировки и рейтинги ценных 
+    бумаг, пресс-релизы и финансовые отчёты компаний. Сайт содержит тематические 
+    форумы и дискуссионные группы, а также предлагает ряд сервисов для управления 
+    персональной финансовой информацией.
+    Международные представительства сайта предлагают аналогичную информацию и 
+    сервисы по странам присутствия на их государственных языках.
+
+    Проект имеет вектор развития, в случае нашего желания он будет развиваться и 
+    дальше.
+	
+
+<h2>Связь с нами:</h2>
+
+    Тимофей: vk.com/dekacore
+    Тимур: timurp23@gmail.com
+    Владимир: v.klimenko.2137@gmail.com
+    Павел: pavelkoloskov12@gmail.com
