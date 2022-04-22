@@ -42,5 +42,3 @@ def get_all_stocks():
     stocks = requests.get(url, headers=HEADERS).json().get('data').get('table').get('rows')
     stocks = [i.get('symbol') for i in stocks]
     save_stocks('stocks.json', stocks)
-
-
