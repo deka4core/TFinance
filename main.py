@@ -3,6 +3,7 @@
 # Встроенные библиотеки.
 import logging
 import os
+import warnings
 
 # Для работы со временем.
 import datetime
@@ -26,9 +27,12 @@ from safety_key import TOKEN
 if not os.path.exists(f'{os.getcwd()}/logs'):
     os.mkdir(f'{os.getcwd()}/logs')
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.WARNING,
     filename=f"{os.getcwd()}/logs/tfinance_main.log")
 logger = logging.getLogger(__name__)
+
+# Отключаем предупреждения пользователей библиотек
+warnings.simplefilter("ignore")
 
 
 # Отправка всех акций из заданного диапазона (start, end).

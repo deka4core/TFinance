@@ -6,6 +6,9 @@ from graphics.visualize import check_stock_prices, pdr, do_stock_image
 
 
 # Обработчик команды /game [stock_index]. Основное меню игры с предугадыванием.
+from stock import check_stock
+
+
 def game_menu(update, context):
     db: Database = Database('data.db')
     try:
@@ -22,8 +25,8 @@ def game_menu(update, context):
                     raise StockSelectedAlready
         if db.check_prediction_stock(user, context.args[0]):  # Проверка: был ли прогноз на эту акцию.
             raise PredictionAlreadySet
-
-        db.select_stock(user, f"{context.args[0]}:{message_id}")  # Запоминаем, что акция была выбрана.
+        if not check_stock(context.args[0]):
+            raise KeyError
 
         # Создание клавиатуры и отправка ответа.
         keyboard = [[
@@ -31,6 +34,7 @@ def game_menu(update, context):
             InlineKeyboardButton("Понижение", callback_data=str(2))]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         update.message.reply_photo(photo=do_stock_image(context.args[0]))
+        db.select_stock(user, f"{context.args[0]}:{message_id}")  # Запоминаем, что акция была выбрана.
         update.message.reply_text(text=f"Предугадайте курс {context.args[0]} на завтра.", reply_markup=reply_markup)
     except pdr._utils.RemoteDataError:
         update.message.reply_text(text="Такой акции не было найдено в данных Yahoo Finance.")
