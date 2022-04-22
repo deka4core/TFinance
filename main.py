@@ -134,7 +134,7 @@ def follow(update, context):
 # Обработчик команды /unfollow. Возможность отписки от акций.
 def unfollow(update, context):
     user = create_user(update)
-    if context.args[0]:
+    if context.args and context.args[0]:
         context.args[0] = context.args[0].upper()
         if not db.check_favourites_stocks(user, context.args[0]):
             update.message.reply_text('Акции нет в избранном')
