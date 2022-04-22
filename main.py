@@ -117,7 +117,7 @@ def favourites(update, _):
 # Обработчик команды /follow. Возможность подписываться на другие акции.
 def follow(update, context):
     user = create_user(update)
-    if context.args[0]:
+    if context.args and context.args[0]:
         context.args[0] = context.args[0].upper()
         if db.check_favourites_stocks(user, context.args[0]):
             update.message.reply_text('Акция уже в избранном')
