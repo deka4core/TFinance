@@ -17,8 +17,8 @@ from blast import notify_assignees, daily
 from functions import create_user
 from graphics.visualize import do_stock_image, pdr
 from stock import check_stock, load_stocks, get_all_stocks
-
-from game import Database, game_menu, higher_game, lower_game, game_results  # ORM (БД с данными о пользователях).
+from database import Database
+from game import game_menu, higher_game, lower_game, game_results  # ORM (БД с данными о пользователях).
 
 # Импортируем TOKEN из безопасного места
 from safety_key import TOKEN
