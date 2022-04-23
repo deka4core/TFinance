@@ -1,6 +1,7 @@
 # Ежедневная рассылка избранных акций.
 from functions import create_user
 from game import Database
+from graphics.visualize import do_stock_image
 
 
 def notify_assignees(context):
