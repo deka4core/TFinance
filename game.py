@@ -103,4 +103,3 @@ def game_results(context):
         # Удаляем пройденные прогнозы
         db.delete_predictions(user)
         user.prediction = db.get_predictions(user)
-
