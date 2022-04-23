@@ -82,6 +82,8 @@ def lower_game(update, _):
 def game_results(context):
     db: Database = Database('data.db')
     for user in db.get_users():
+        if not user.prediction:
+            continue
         for i in user.prediction.split():
             # Проверка прогноза
             try:
