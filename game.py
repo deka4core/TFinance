@@ -11,14 +11,12 @@ from stock import check_stock
 
 def game_menu(update, context):
     db: Database = Database('data.db')
+    user = create_user(update)
+    message_id = str(int(update.message.message_id) + 2)  # Сохраняем id сообщения для возможности одновременной
+    # игры на многих акциях. Прибавляем 2 т.к. отправляем 2 сообщения: фото и приписку к нему с клавиатурой.
     try:
         if not context.args:  # Проверка на наличие аргументов.
             update.message.reply_text("Неправильно введена команда! Попробуйте: /game [индекс акции]")
-
-        user = create_user(update)
-        message_id = str(int(update.message.message_id) + 2)  # Сохраняем id сообщения для возможности одновременной
-        # игры на многих акциях. Прибавляем 2 т.к. отправляем 2 сообщения: фото и приписку к нему с клавиатурой.
-
         if db.check_selected_stocks(user):  # Проверка: была ли выбрана акция до этого? Избегаем читерства.
             for stock in db.get_selected_stocks(user):
                 if context.args[0] in stock:
