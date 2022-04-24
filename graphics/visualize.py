@@ -35,7 +35,7 @@ def do_stock_image(stock_name, delta=30):
     return contents
 
 
-def check_stock_prices(stock_name, delta=2) -> bool:
+def check_stock_prices(stock_name, delta=5) -> bool:
     """
         Получить информацию об изменении курса акции.
     :param stock_name: Строка, содержащая индекс названия акции.
