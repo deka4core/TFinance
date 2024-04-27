@@ -117,19 +117,19 @@ def start(update, _):
 def help(update, _):
     update.message.reply_text(
         """
-    /stocks [количество акций]
-    Например: /stocks 100 - посмотреть первые 100 акций
-    /stocks all - посмотреть все акции на бирже
-    /stocks [буква алфавита]
-    Например: /stocks A - посмотреть все акции,название которых начинается с 'A'
+/stocks [количество акций]
+Например: /stocks 100 - посмотреть первые 100 акций
+/stocks all - посмотреть все акции на бирже
+/stocks [буква алфавита]
+Например: /stocks A - посмотреть все акции,название которых начинается с 'A'
 
-    /follow [stock_name] - добавить акцию в избранное
-    /unfollow [stock_name] - удалить акцию из избранного
-    /favourites - посмотреть список избранных акций
+/follow [stock_name] - добавить акцию в избранное
+/unfollow [stock_name] - удалить акцию из избранного
+/favourites - посмотреть список избранных акций
 
-    /daily - установить ежедневную рассылку избранных акций
-    /stats - посмотреть собственную статистику
-    /game [stock_name] - начать игру с прогнозом выбранной акции
+/daily - установить ежедневную рассылку избранных акций
+/stats - посмотреть собственную статистику
+/game [stock_name] - начать игру с прогнозом выбранной акции
         """,
     )
 
@@ -182,9 +182,14 @@ def stats(update, _):
     user = create_user(update)
     data = db.read_info(user)
     try:
-        update.message.reply_text(f"UserName: {data[0]}\nИзбранные акции:"
-                                  f" {', '.join(data[1].split()) if data[1] else "Нет"}"
-                                  f"\nОчки, заработанные в игре: {data[2]}")
+        favourites_string = ", ".join(data[1].split()) if data[1] else "Нет"
+        update.message.reply_text(
+            f"""
+UserName: {data[0]}
+Избранные акции: {favourites_string}
+Очки, заработанные в игре: {data[2]}
+            """,
+        )
     except TypeError:
         update.message.reply_text(
             "Вас нет в бд, запустите команду /start чтобы исправить ошибку",
