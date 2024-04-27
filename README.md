@@ -1,6 +1,5 @@
 # TFinance 
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/deka4core/TFinance.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/deka4core/TFinance/context:python) [![Total alerts](https://img.shields.io/lgtm/alerts/g/deka4core/TFinance.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/deka4core/TFinance/alerts/) ![Lines of code](https://img.shields.io/tokei/lines/github.com/deka4core/TFinance) ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/deka4core/TFinance) ![Pull requests](https://img.shields.io/static/v1?label=PR&message=Welcome&color=orange)
-
+![Lines of code](https://img.shields.io/tokei/lines/github/deka4core/TFinance) ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/deka4core/TFinance) ![Pull requests](https://img.shields.io/static/v1?label=PR&message=Welcome&color=orange)
 ![Image](https://repository-images.githubusercontent.com/478225356/c75529db-2963-4a22-95cd-3512411cb8c2)
 
 Проект: Telegram bot TFinace
