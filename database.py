@@ -3,7 +3,6 @@ import sqlite3
 from items import User
 
 
-# Реализация паттерна проектирования Singleton
 def singleton(cls):
     instance = [None]
 

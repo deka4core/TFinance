@@ -19,7 +19,7 @@ def notify_assignees(context):
                         logging.exception(e)
 
 
-# Обработчик команды /daily. Включение/выключение ежедневной рассылки.
+# Включение/выключение ежедневной рассылки.
 def daily(update, _):
     db = Database("data.db")
     user = create_user(update)

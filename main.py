@@ -21,8 +21,6 @@ from blast import notify_assignees, daily
 from functions import create_user
 
 import pandas_datareader as pdr
-import yfinance as yf
-yf.pdr_override()
 from graphics.visualize import do_stock_image
 from stock import check_stock, load_stocks, get_all_stocks
 # ORM (БД с данными о пользователях).
@@ -115,7 +113,7 @@ def start(update, _):
     )
 
 
-# Обработчик команды /help.
+# Список команд.
 def help(update, _):
     update.message.reply_text(
         """
@@ -136,7 +134,7 @@ def help(update, _):
     )
 
 
-# Обработчик команды /favourites. Отправляет список любимых акций.
+# Отправляет список любимых акций.
 def favourites(update, _):
     user = create_user(update)
     stocks = db.get_favourites_stocks(user)
@@ -146,7 +144,7 @@ def favourites(update, _):
         update.message.reply_text("У вас нет избранных акций")
 
 
-# Обработчик команды /follow. Возможность подписываться на другие акции.
+# Возможность подписываться на другие акции.
 def follow(update, context):
     user = create_user(update)
     if context.args and context.args[0]:
@@ -165,7 +163,7 @@ def follow(update, context):
         )
 
 
-# Обработчик команды /unfollow. Возможность отписки от акций.
+# Возможность отписки от акций.
 def unfollow(update, context):
     user = create_user(update)
     if context.args and context.args[0]:
@@ -179,7 +177,7 @@ def unfollow(update, context):
         update.message.reply_text("Неверный способ ввода. /unfollow [индекс акции].")
 
 
-# Обработчик команды /stats. Вывод статистики пользователя из БД.
+# Вывод статистики пользователя из БД.
 def stats(update, _):
     user = create_user(update)
     data = db.read_info(user)
@@ -201,7 +199,6 @@ def main():
     except Exception as e:
         logging.error(e)
 
-    # Создаём объект updater.
     updater = Updater(TOKEN)
     dispatcher = updater.dispatcher
     job_queue = updater.job_queue
@@ -218,7 +215,7 @@ def main():
         ),
     )
 
-    # ConversationHandler для игры.
+    # Обработчик для игры.
     game_handler = ConversationHandler(
         entry_points=[CommandHandler("game", game_menu)],
         states={1: [CallbackQueryHandler(higher_game, pattern="^1$"),

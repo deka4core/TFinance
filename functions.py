@@ -10,7 +10,6 @@ class PredictionAlreadySet(Exception):  # Прогноз на акцию уже 
     pass
 
 
-# Создать экземпляр класса User
 def create_user(update) -> User:
     return User(update.effective_user.to_dict())
 

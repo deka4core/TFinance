@@ -52,7 +52,7 @@ def game_menu(update, context):
             text=f"Предугадайте курс {context.args[0]} на завтра.",
             reply_markup=reply_markup,
         )
-    #except pdr._utils.RemoteDataError:
+    # except pdr._utils.RemoteDataError:
     #    update.message.reply_text(
     #        text="Такой акции не было найдено в данных Yahoo Finance.",
     #    )
