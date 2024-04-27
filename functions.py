@@ -27,8 +27,12 @@ def generate_prediction(query, database, user: User, prediction: str):
 
 # Сообщить о победе пользователя.
 def user_won(context, database, user: User, stock: str):
-    context.bot.send_message(chat_id=user.id, text=f"Прогноз {stock} был верным. "
-                                                   f"\nВы получили 1 очко. "
-                                                   f"\nПосмотреть кол-во очков можно, "
-                                                   f"использовав /stats.")
+    context.bot.send_message(
+        chat_id=user.id,
+        text=f"""
+Прогноз {stock} был верным.
+Вы получили 1 очко.
+Посмотреть кол-во очков можно, использовав /stats.
+        """,
+    )
     database.add_point(user)
