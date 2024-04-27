@@ -1,11 +1,9 @@
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from database import Database
-from exceptions import StockSelectedAlready, PredictionAlreadySet, EmptyDataFrameError
+from exceptions import EmptyDataFrameError, PredictionAlreadySet, StockSelectedAlready
 from functions import create_user, generate_prediction, user_won
 from graphics.visualize import check_stock_prices, do_stock_image
-
-
 # Обработчик команды /game [stock_index]. Основное меню игры с предугадыванием.
 from stock import check_stock
 

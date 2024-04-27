@@ -1,8 +1,8 @@
 # Ежедневная рассылка избранных акций.
 import logging
 
-from functions import create_user
 from database import Database
+from functions import create_user
 from graphics.visualize import do_stock_image
 
 

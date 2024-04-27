@@ -1,34 +1,28 @@
 # -------------------------- Основной файл приложения -------------------------- #
 # --------------- Импорт необходимых библиотек, функций, классов --------------- #
 # Встроенные библиотеки.
+import datetime
 import logging
 import os
+from pathlib import Path
 import warnings
 
-# Для работы со временем.
-import datetime
-from pathlib import Path
-
 import pytz
-
 # Работа с telegram-bot-api.
 from telegram.ext import (
-    Updater, CommandHandler, ConversationHandler, CallbackQueryHandler,
+    CallbackQueryHandler, CommandHandler, ConversationHandler, Updater,
 )
-
 # Работа с акциями (загрузка, вывод, проверка, игра, визуализация, рассылка).
-from blast import notify_assignees, daily
-from exceptions import EmptyDataFrameError
-from functions import create_user
-
-from graphics.visualize import do_stock_image
-from stock import check_stock, load_stocks, get_all_stocks
+from blast import daily, notify_assignees
 # ORM (БД с данными о пользователях).
 from database import Database
-from game import game_menu, higher_game, lower_game, game_results
-
-# Импортируем TOKEN из безопасного места
+from exceptions import EmptyDataFrameError
+from functions import create_user
+from game import game_menu, game_results, higher_game, lower_game
+from graphics.visualize import do_stock_image
 from safety_key import TOKEN
+from stock import check_stock, get_all_stocks, load_stocks
+
 
 # Запускаем логирование
 logs_path = Path(f"{os.getcwd()}/logs")

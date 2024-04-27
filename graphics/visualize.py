@@ -1,6 +1,7 @@
 import io
-import yfinance as yf
+
 import matplotlib.pyplot as plt
+import yfinance as yf
 
 from exceptions import EmptyDataFrameError
 

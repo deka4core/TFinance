@@ -1,9 +1,10 @@
 import json
 import logging
 from pathlib import Path
-import yfinance as yf
 
 import requests
+import yfinance as yf
+
 
 HEADERS = {
     "User-Agent":
