@@ -18,6 +18,7 @@ from telegram.ext import (
 
 # Работа с акциями (загрузка, вывод, проверка, игра, визуализация, рассылка).
 from blast import notify_assignees, daily
+from exceptions import EmptyDataFrameError
 from functions import create_user
 
 import pandas_datareader as pdr
@@ -96,7 +97,7 @@ def get_stock_image(update, context):
         update.message.reply_text(
             "Неверный способ ввода. /stock [индекс акции]. Например: /stock AAPL",
         )
-    except pdr._utils.RemoteDataError:
+    except EmptyDataFrameError:
         update.message.reply_text(
             "Такой акции не было найдено в данных Yahoo Finance.",
         )

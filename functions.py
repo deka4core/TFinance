@@ -1,15 +1,6 @@
 from items import User
 
 
-# Исключения для игры
-class StockSelectedAlready(Exception):  # Акция уже выбрана
-    pass
-
-
-class PredictionAlreadySet(Exception):  # Прогноз на акцию уже установлен
-    pass
-
-
 def create_user(update) -> User:
     return User(update.effective_user.to_dict())
 

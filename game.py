@@ -1,10 +1,8 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 from database import Database
-from functions import (
-    create_user, PredictionAlreadySet,
-    StockSelectedAlready, generate_prediction, user_won,
-)
+from exceptions import StockSelectedAlready, PredictionAlreadySet, EmptyDataFrameError
+from functions import create_user, generate_prediction, user_won
 from graphics.visualize import check_stock_prices, do_stock_image
 
 
@@ -52,11 +50,11 @@ def game_menu(update, context):
             text=f"Предугадайте курс {context.args[0]} на завтра.",
             reply_markup=reply_markup,
         )
-    # except pdr._utils.RemoteDataError:
-    #    update.message.reply_text(
-    #        text="Такой акции не было найдено в данных Yahoo Finance.",
-    #    )
-    #    db.remove_selected_stock(user, message_id)
+    except EmptyDataFrameError:
+        update.message.reply_text(
+            "Такой акции не было найдено в данных Yahoo Finance.",
+        )
+        db.remove_selected_stock(user, message_id)
     except TypeError:
         update.message.reply_text(
             "Вас нет в бд, запустите команду /start чтобы исправить ошибку",
