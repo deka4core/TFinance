@@ -117,6 +117,8 @@ def start(update, _):
 def help(update, _):
     update.message.reply_text(
         """
+/stock [stock_name] - посмотреть график цены акции за 30 дней
+Например /stock AAPL - посмотреть график цены акции Apple за 30 дней
 /stocks [количество акций]
 Например: /stocks 100 - посмотреть первые 100 акций
 /stocks all - посмотреть все акции на бирже
