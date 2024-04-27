@@ -21,7 +21,6 @@ from blast import notify_assignees, daily
 from exceptions import EmptyDataFrameError
 from functions import create_user
 
-import pandas_datareader as pdr
 from graphics.visualize import do_stock_image
 from stock import check_stock, load_stocks, get_all_stocks
 # ORM (БД с данными о пользователях).
