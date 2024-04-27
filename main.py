@@ -209,7 +209,7 @@ def main():
     # Ежедневные задачи.
     job_queue.run_daily(
         notify_assignees, datetime.time(
-            hour=18, minute=45, tzinfo=pytz.timezone("Europe/Moscow"),
+            hour=8, tzinfo=pytz.timezone("Europe/Moscow"),
         ),
     )
     job_queue.run_daily(
