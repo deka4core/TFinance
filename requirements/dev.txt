@@ -1,2 +1,3 @@
 -r prod.txt
 -r test.txt
+sort-requirements>=1.3.0
