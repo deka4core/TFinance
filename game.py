@@ -9,7 +9,7 @@ from stock import check_stock
 
 
 def game_menu(update, context):
-    db: Database = Database("data.db")
+    db: Database = Database()
     user = create_user(update)
     # Сохраняем id сообщения для возможности одновременной
     message_id = str(int(update.message.message_id) + 2)
@@ -79,7 +79,7 @@ def game_menu(update, context):
 
 # Кнопка повышения акции.
 def higher_game(update, _):
-    db: Database = Database("data.db")
+    db: Database = Database()
     user = create_user(update)
 
     # Обработка и ответ на колл-бэк.
@@ -94,7 +94,7 @@ def higher_game(update, _):
 
 # Кнопка понижения акции.
 def lower_game(update, _):
-    db: Database = Database("data.db")
+    db: Database = Database()
     user = create_user(update)
 
     # Обработка и ответ на колл-бэк.
@@ -113,7 +113,7 @@ def lower_game(update, _):
 
 # Подсчет результатов игры.
 def game_results(context):
-    db: Database = Database("data.db")
+    db: Database = Database()
     for user in db.get_users():
         if not user.prediction:
             continue

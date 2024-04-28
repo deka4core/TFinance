@@ -243,5 +243,5 @@ def main():
 
 
 if __name__ == "__main__":
-    db: Database = Database("data.db")
+    db: Database = Database()
     main()

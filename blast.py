@@ -10,7 +10,7 @@ from graphics.visualize import do_stock_image
 
 
 async def notify_assignees(context: CallbackContext):
-    db = Database("data.db")
+    db = Database()
     # Перебираем всех пользователей и рассылаем каждому курсы их избранных акций.
     for user in db.get_users():
         if db.check_user_daily_notify(user):
@@ -26,7 +26,7 @@ async def notify_assignees(context: CallbackContext):
 
 # Включение/выключение ежедневной рассылки.
 async def daily(update: Update, _):
-    db = Database("data.db")
+    db = Database()
     user = create_user(update)
     db.add_user(user)
     if db.check_user_daily_notify(user):

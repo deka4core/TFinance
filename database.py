@@ -18,9 +18,9 @@ class Database:
     """
         Класс БД с данными о пользователях.
     """
-    def __init__(self, db_name: str):
+    def __init__(self):
         # Подключение к БД с отключенной проверкой потока.
-        self.con = sqlite3.connect(db_name, check_same_thread=False)
+        self.con = sqlite3.connect("data.db", check_same_thread=False)
         self.cur = self.con.cursor()
         self.setup()
 
