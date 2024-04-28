@@ -38,9 +38,9 @@ warnings.simplefilter("ignore")
 
 
 # Отправка всех акций из заданного диапазона (start, end).
-def send_stocks(update, start, end, templates):
+def send_stocks(update, begin: int, end: int, templates):
     msg = ""
-    for i in range(start, end):
+    for i in range(begin, end):
         msg += templates["stocks"][i] + ", "
     update.message.reply_text(msg)
 
@@ -108,7 +108,7 @@ def start(update, _):
 
 
 # Список команд.
-def help(update, _):
+def help_msg(update, _):
     update.message.reply_text(
         """
 /stock [stock_name] - посмотреть график цены акции за 30 дней
@@ -228,7 +228,7 @@ def main():
     # Регистрируем обработчик команд.
     dispatcher.add_handler(CommandHandler("daily", daily))
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help))
+    dispatcher.add_handler(CommandHandler("help", help_msg))
     dispatcher.add_handler(CommandHandler("favourites", favourites))
     dispatcher.add_handler(CommandHandler("follow", follow))
     dispatcher.add_handler(CommandHandler("unfollow", unfollow))
