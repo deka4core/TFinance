@@ -23,7 +23,7 @@ def do_stock_image(stock_name):
     # Создаем полотно с графиком.
     stock["Close"].plot(grid=True)
     plt.title(f"Курс акции {stock_name} за последние 30 дней", fontsize=14)
-    plt.gca().set(ylabel="Price")
+    plt.gca().set(ylabel="Price USD")
 
     # Записываем полученный график в байты и возвращаем полученное изображение.
     output = io.BytesIO()
