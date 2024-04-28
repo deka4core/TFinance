@@ -17,7 +17,9 @@ async def notify_assignees(context: CallbackContext):
             if user.favourites_stocks:
                 for i in user.favourites_stocks.split():
                     try:
-                        await context.bot.send_photo(chat_id=user.id, photo=do_stock_image(i))
+                        await context.bot.send_photo(
+                            chat_id=user.id, photo=do_stock_image(i),
+                        )
                     except Exception as e:
                         logging.exception(e)
 

@@ -171,7 +171,9 @@ async def unfollow(update: Update, context: ContextTypes.DEFAULT_TYPE):
             db.remove_favourites_stock(user, context.args[0])
             await update.message.reply_text("Акция удалена из избранного")
     else:
-        await update.message.reply_text("Неверный способ ввода. /unfollow [индекс акции].")
+        await update.message.reply_text(
+            "Неверный способ ввода. /unfollow [индекс акции].",
+        )
 
 
 # Вывод статистики пользователя из БД.
