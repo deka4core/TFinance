@@ -1,3 +1,5 @@
+from telegram.ext import CallbackContext
+
 from items import User
 
 
@@ -17,8 +19,8 @@ def generate_prediction(query, database, user: User, prediction: str):
 
 
 # Сообщить о победе пользователя.
-def user_won(context, database, user: User, stock: str):
-    context.bot.send_message(
+async def user_won(context: CallbackContext, database, user: User, stock: str):
+    await context.bot.send_message(
         chat_id=user.id,
         text=f"""
 Прогноз {stock} был верным.
