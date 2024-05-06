@@ -1,6 +1,6 @@
 import sqlite3
 
-from items import User
+from models import User
 
 
 def singleton(cls):
@@ -33,6 +33,7 @@ class Database:
             """CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY ON CONFLICT IGNORE NOT NULL,
             first_name STRING, last_name STRING, username STRING,
+            language_code STRING, is_bot BOOLEAN,
             favourites_stocks STRING, prediction STRING, selected_stock STRING,
             points INTEGER, daily_notify BOOLEAN);
             """,
@@ -45,12 +46,15 @@ class Database:
         :param user: Экземпляр класса User с данными об этом пользователе.
         :return: None
         """
-        self.cur.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);",
-                         (user.id, user.first_name, user.last_name,
-                          user.username, None, None, None, user.points, False))
+        self.cur.execute(
+            "INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+            (user.id, user.first_name, user.last_name, user.username,
+             user.language_code, user.is_bot,
+             None, None, None, user.points, False),
+        )
         self.con.commit()
 
-    def get_users(self) -> [User]:
+    def get_users(self) -> list[User]:
         """
             Получить список пользователей.
         :return: Возвращает список всех пользователей, записанных в БД.
@@ -58,14 +62,7 @@ class Database:
         users = self.cur.execute(
             "SELECT * FROM users",
         ).fetchall()
-        return [
-            User(
-                {"id": i[0], "first_name": i[1], "last_name": i[2], "username": i[3],
-                 "favourites_stocks": i[4], "prediction": i[5], "selected_stock": i[6],
-                 "points": i[7],
-                 },
-            ) for i in users
-        ]
+        return [User(*i) for i in users]
 
     def add_prediction(self, user: User, stock_name: str, updown: str):
         """

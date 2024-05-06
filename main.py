@@ -31,7 +31,7 @@ if not logs_path.exists():
     logs_path.mkdir(exist_ok=True)
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.WARNING,
-    filename=f"{os.getcwd()}/logs/tfinance_main.log")
+    filename=f"{logs_path}/tfinance_main.log")
 logger = logging.getLogger(__name__)
 
 # Отключаем предупреждения пользователей библиотек

@@ -3,8 +3,9 @@ from telegram.ext import ContextTypes, CallbackContext
 
 from database import Database
 from exceptions import EmptyDataFrameError, PredictionAlreadySet, StockSelectedAlready
-from functions import create_user, generate_prediction, user_won
+from functions import create_user
 from graphics.visualize import check_stock_prices, do_stock_image
+from models import User
 # Обработчик команды /game [stock_index]. Основное меню игры с предугадыванием.
 from stock import check_stock
 
@@ -78,9 +79,21 @@ async def game_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return 1
 
 
+# Установить прогноз акции
+def generate_prediction(query, user: User, prediction: str):
+    db: Database = Database()
+    # Получаем id сообщения, для нахождения нужной сессии игры.
+
+    message_id = query.message.message_id
+    db.add_prediction(
+        user, db.get_selected_stock_byid(user, message_id), prediction,
+    )
+    # Удаляем акцию из выбранных.
+    db.remove_selected_stock(user, message_id)
+
+
 # Кнопка повышения акции.
 async def higher_game(update: Update, _):
-    db: Database = Database()
     user = create_user(update)
 
     # Обработка и ответ на колл-бэк.
@@ -88,14 +101,14 @@ async def higher_game(update: Update, _):
     await query.answer()
 
     # Устанавливаем прогноз на акцию.
-    generate_prediction(query, database=db, user=user, prediction="up")
+    generate_prediction(query, user=user, prediction="up")
     # Редактируем сообщение с клавиатурой.
     await query.edit_message_text(text="Предсказание установлено на повышение")
 
 
 # Кнопка понижения акции.
 async def lower_game(update: Update, _):
-    db: Database = Database()
+
     user = create_user(update)
 
     # Обработка и ответ на колл-бэк.
@@ -104,12 +117,25 @@ async def lower_game(update: Update, _):
 
     # Устанавливаем прогноз на акцию.
     generate_prediction(
-        query, database=db, user=user, prediction="down",
+        query, user=user, prediction="down",
     )
     # Редактируем сообщение с клавиатурой.
     await query.edit_message_text(
         text="Предсказание установлено на понижение",
     )
+
+
+# Сообщить о победе пользователя.
+async def user_won(context: CallbackContext, database, user: User, stock: str):
+    await context.bot.send_message(
+        chat_id=user.id,
+        text=f"""
+Прогноз {stock} был верным.
+Вы получили 1 очко.
+Посмотреть кол-во очков можно, использовав /stats.
+        """,
+    )
+    database.add_point(user)
 
 
 # Подсчет результатов игры.
