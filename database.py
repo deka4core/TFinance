@@ -32,10 +32,17 @@ class Database:
         self.cur.execute(
             """CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY ON CONFLICT IGNORE NOT NULL,
-            first_name STRING, last_name STRING, username STRING,
-            language_code STRING, is_bot BOOLEAN,
-            favourites_stocks STRING, prediction STRING, selected_stock STRING,
-            points INTEGER, daily_notify BOOLEAN);
+            first_name STRING,
+            last_name STRING,
+            username STRING,
+            language_code STRING,
+            is_bot BOOLEAN,
+            favourites_stocks STRING,
+            prediction STRING,
+            selected_stock STRING,
+            points INTEGER,
+            daily_notify BOOLEAN
+            );
             """,
         )
         self.con.commit()
@@ -48,9 +55,19 @@ class Database:
         """
         self.cur.execute(
             "INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
-            (user.id, user.first_name, user.last_name, user.username,
-             user.language_code, user.is_bot,
-             None, None, None, user.points, False),
+            (
+                user.id,
+                user.first_name,
+                user.last_name,
+                user.username,
+                user.language_code,
+                user.is_bot,
+                None,
+                None,
+                None,
+                user.points,
+                False,
+            ),
         )
         self.con.commit()
 
@@ -62,7 +79,18 @@ class Database:
         users = self.cur.execute(
             "SELECT * FROM users",
         ).fetchall()
-        return [User(*i) for i in users]
+        return [
+            User(
+                user_id=row[0],
+                first_name=row[1],
+                last_name=row[2],
+                username=row[3],
+                language_code=row[4],
+                is_bot=bool(row[5]),
+                favourite_stocks=row[6],
+                prediction=row[7],
+                selected_stock=row[8],
+            ) for row in users]
 
     def add_prediction(self, user: User, stock_name: str, updown: str):
         """
