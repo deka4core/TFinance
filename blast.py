@@ -14,8 +14,8 @@ async def notify_assignees(context: CallbackContext):
     # Перебираем всех пользователей и рассылаем каждому курсы их избранных акций.
     for user in db.get_users():
         if db.check_user_daily_notify(user):
-            if user.favourites_stocks:
-                for i in user.favourites_stocks.split():
+            if user.favourite_stocks:
+                for i in user.favourite_stocks.split():
                     try:
                         await context.bot.send_photo(
                             chat_id=user.id, photo=do_stock_image(i),
