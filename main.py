@@ -194,7 +194,7 @@ async def stats(update: Update, _):
         favourites_string = ", ".join(data[1].split()) if data[1] else "Нет"
         await update.message.reply_text(
             f"""
-UserName: {data[0]}
+Имя пользователя: {data[0]}
 Избранные акции: {favourites_string}
 Очки, заработанные в игре: {data[2]}
             """,
