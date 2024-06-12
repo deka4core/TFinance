@@ -38,43 +38,23 @@ logger = logging.getLogger(__name__)
 warnings.simplefilter("ignore")
 
 
-# Отправка всех акций из заданного диапазона (start, end).
-async def send_stocks(update: Update, begin: int, end: int, templates):
-    msg = ""
-    for i in range(begin, end):
-        msg += templates["stocks"][i] + ", "
-    await update.message.reply_text(msg)
-
-
 # Получение списка необходимых акций по команде /stocks [args].
 # Обработчик команды /stocks.
 async def get_list_stocks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         templates = load_stocks("stocks.json")  # Загружаем список всех акций
-
-        # Проверка на наличие аргументов
-        if context.args[0] == "all":
-            # Большим сообщением все сразу не отправится,
-            # поэтому разделяем на 3 поменьше.
-            await send_stocks(update, 0, 700, templates)
-            await send_stocks(update, 700, 1400, templates)
-            await send_stocks(update, 1400, 2100, templates)
-        # Если аргумент - число, отсылаем первые n акций.
-        elif context.args[0].isdigit():
-            numb = int(context.args[0])
-            if numb > 700:
-                while numb > 700:
-                    numb = 700
-                    await send_stocks(update, 0, numb, templates)
-                    numb = int(context.args[0]) - 700
-            await send_stocks(update, 0, numb, templates)
-        # Если аргумент - строка, выводим все акции на первую букву строки.
+        msg = ""
+        if context.args[0].isalpha():
+            for el in templates:
+                if el["name"].lower().startswith(context.args[0].lower()):
+                    msg += f"{el['symbol']} {el['name']}\n"
+            if len(msg) > 4096:
+                msg = msg[:4093] + "..."
+            elif len(msg) == 0:
+                msg = "Ничего не найдено."
+            await update.message.reply_text(msg)
         else:
-            message = []
-            for el in templates["stocks"]:
-                if el[0].lower() == context.args[0].lower()[0]:
-                    message.append(el)
-            await update.message.reply_text(", ".join(message))
+            raise ValueError
     except (IndexError, ValueError):
         await update.message.reply_text("Неверный способ ввода. /help")
 
@@ -124,9 +104,6 @@ async def help_msg(update: Update, _):
 (по умолчанию 1 месяц)
 Доступные периоды: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
 Например: /stock AAPL 3mo - посмотреть график цены акции Apple за 3 месяца
-/stocks [количество акций]
-Например: /stocks 100 - посмотреть первые 100 акций
-/stocks all - посмотреть все акции на бирже
 /stocks [буква алфавита]
 Например: /stocks A - посмотреть все акции,название которых начинается с 'A'
 
