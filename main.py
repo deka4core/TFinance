@@ -88,7 +88,7 @@ async def get_stock_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if len(context.args) == 1:
             context.args.append("1mo")
         await update.message.reply_photo(
-            do_stock_image(context.args[0]), context.args[1],
+            do_stock_image(context.args[0], context.args[1]),
         )
     except (IndexError, ValueError):
         await update.message.reply_text(
