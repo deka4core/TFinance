@@ -17,7 +17,7 @@ from telegram.ext import (
 from blast import daily, notify_assignees
 # ORM (БД с данными о пользователях).
 from database import Database
-from exceptions import EmptyDataFrameError
+from exceptions import EmptyDataFrameError, WrongPeriodError
 from functions import create_user
 from game import game_menu, game_results, higher_game, lower_game
 from graphics.visualize import do_stock_image
@@ -83,13 +83,21 @@ async def get_list_stocks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Визуализирует график и отправляет его в прямом порядке.
 async def get_stock_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        if context.args[0]:
-            await update.message.reply_photo(do_stock_image(context.args[0]))
-        else:
+        if len(context.args) not in range(1, 3):
             raise ValueError
+        if len(context.args) == 1:
+            context.args.append("1mo")
+        await update.message.reply_photo(
+            do_stock_image(context.args[0]), context.args[1],
+        )
     except (IndexError, ValueError):
         await update.message.reply_text(
-            "Неверный способ ввода. /stock [индекс акции]. Например: /stock AAPL",
+            "Неверный способ ввода. /stock [индекс акции] [период]."
+            "Например: /stock AAPL 1m",
+        )
+    except WrongPeriodError:
+        await update.message.reply_text(
+            "Неверный период. Доступные периоды: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max",
         )
     except EmptyDataFrameError:
         await update.message.reply_text(
@@ -112,8 +120,10 @@ async def start(update: Update, _):
 async def help_msg(update: Update, _):
     await update.message.reply_text(
         """
-/stock [stock_name] - посмотреть график цены акции за 30 дней
-Например /stock AAPL - посмотреть график цены акции Apple за 30 дней
+/stock [stock_name] [период] - посмотреть график цены акции за период
+(по умолчанию 1 месяц)
+Доступные периоды: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
+Например: /stock AAPL 3mo - посмотреть график цены акции Apple за 3 месяца
 /stocks [количество акций]
 Например: /stocks 100 - посмотреть первые 100 акций
 /stocks all - посмотреть все акции на бирже
