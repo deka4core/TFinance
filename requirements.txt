@@ -1,6 +1,6 @@
-python-telegram-bot==13.15
 matplotlib>=3.5.3
-requests==2.31.0
-urllib3==1.26.18
-pytz==2024.1
-yfinance==0.2.38
+python-telegram-bot>=21.1.1
+python-telegram-bot[job-queue]
+pytz>=2024.1
+requests>=2.31.0
+yfinance>=0.2.38

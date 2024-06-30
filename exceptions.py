@@ -8,5 +8,9 @@ class PredictionAlreadySet(Exception):  # Прогноз на акцию уже 
 
 
 # Исключения для графиков
-class EmptyDataFrameError(Exception):  # Прогноз на акцию уже установлен
+class EmptyDataFrameError(Exception):  # Пустой дата фрейм
+    pass
+
+
+class WrongPeriodError(Exception):  # Неверный период
     pass
