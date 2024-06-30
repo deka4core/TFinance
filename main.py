@@ -9,12 +9,19 @@ import warnings
 
 import pytz
 from telegram import Update
+
 # Работа с telegram-bot-api.
 from telegram.ext import (
-    CallbackQueryHandler, CommandHandler, ConversationHandler, Application, ContextTypes,
+    CallbackQueryHandler,
+    CommandHandler,
+    ConversationHandler,
+    Application,
+    ContextTypes,
 )
+
 # Работа с акциями (загрузка, вывод, проверка, игра, визуализация, рассылка).
 from blast import daily, notify_assignees
+
 # ORM (БД с данными о пользователях).
 from database import Database
 from exceptions import EmptyDataFrameError, WrongPeriodError
@@ -30,8 +37,10 @@ logs_path = Path(f"{os.getcwd()}/logs")
 if not logs_path.exists():
     logs_path.mkdir(exist_ok=True)
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.WARNING,
-    filename=f"{logs_path}/tfinance_main.log")
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.WARNING,
+    filename=f"{logs_path}/tfinance_main.log",
+)
 logger = logging.getLogger(__name__)
 
 # Отключаем предупреждения пользователей библиотек
@@ -195,21 +204,29 @@ def main():
 
     # Ежедневные задачи.
     job_queue.run_daily(
-        notify_assignees, datetime.time(
-            hour=8, tzinfo=pytz.timezone("Europe/Moscow"),
+        notify_assignees,
+        datetime.time(
+            hour=8,
+            tzinfo=pytz.timezone("Europe/Moscow"),
         ),
     )
     job_queue.run_daily(
-        game_results, datetime.time(
-            hour=3, tzinfo=pytz.timezone("Europe/Moscow"),
+        game_results,
+        datetime.time(
+            hour=3,
+            tzinfo=pytz.timezone("Europe/Moscow"),
         ),
     )
 
     # Обработчик для игры.
     game_handler = ConversationHandler(
         entry_points=[CommandHandler("game", game_menu)],
-        states={1: [CallbackQueryHandler(higher_game, pattern="^1$"),
-                    CallbackQueryHandler(lower_game, pattern="^2$")]},
+        states={
+            1: [
+                CallbackQueryHandler(higher_game, pattern="^1$"),
+                CallbackQueryHandler(lower_game, pattern="^2$"),
+            ],
+        },
         fallbacks=[CommandHandler("game", game_menu)],
     )
     application.add_handler(game_handler)

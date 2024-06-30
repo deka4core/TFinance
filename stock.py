@@ -7,9 +7,8 @@ import yfinance as yf
 
 
 HEADERS = {
-    "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) "
-        "Gecko/20100101 Firefox/99.0",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) "
+    "Gecko/20100101 Firefox/99.0",
 }
 
 
@@ -41,10 +40,19 @@ def save_stocks(file_name: str, stocks: list):
 
 # Получение списка акций и их сохранение.
 def get_all_stocks():
-    url = ("https://api.nasdaq.com/api/screener/stocks?"
-           "tableonly=true&limit=6000&exchange=NASDAQ")
-    stocks = requests.get(
-        url, headers=HEADERS,
-    ).json().get("data").get("table").get("rows")
+    url = (
+        "https://api.nasdaq.com/api/screener/stocks?"
+        "tableonly=true&limit=6000&exchange=NASDAQ"
+    )
+    stocks = (
+        requests.get(
+            url,
+            headers=HEADERS,
+        )
+        .json()
+        .get("data")
+        .get("table")
+        .get("rows")
+    )
     stocks = [{"symbol": i.get("symbol"), "name": i.get("name")} for i in stocks]
     save_stocks("stocks.json", stocks)

@@ -6,6 +6,7 @@ from exceptions import EmptyDataFrameError, PredictionAlreadySet, StockSelectedA
 from functions import create_user
 from graphics.visualize import check_stock_prices, do_stock_image
 from models import User
+
 # Обработчик команды /game [stock_index]. Основное меню игры с предугадыванием.
 from stock import check_stock
 
@@ -35,16 +36,20 @@ async def game_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             raise KeyError
 
         # Создание клавиатуры и отправка ответа.
-        keyboard = [[
-            InlineKeyboardButton("Повышение", callback_data=str(1)),
-            InlineKeyboardButton("Понижение", callback_data=str(2))]]
+        keyboard = [
+            [
+                InlineKeyboardButton("Повышение", callback_data=str(1)),
+                InlineKeyboardButton("Понижение", callback_data=str(2)),
+            ],
+        ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_photo(
             photo=do_stock_image(context.args[0]),
         )
         # Запоминаем, что акция была выбрана.
         db.select_stock(
-            user, f"{context.args[0]}:{message_id}",
+            user,
+            f"{context.args[0]}:{message_id}",
         )
         await update.message.reply_text(
             text=f"Предугадайте курс {context.args[0]} на завтра.",
@@ -86,7 +91,9 @@ def generate_prediction(query, user: User, prediction: str):
 
     message_id = query.message.message_id
     db.add_prediction(
-        user, db.get_selected_stock_byid(user, message_id), prediction,
+        user,
+        db.get_selected_stock_byid(user, message_id),
+        prediction,
     )
     # Удаляем акцию из выбранных.
     db.remove_selected_stock(user, message_id)
@@ -117,7 +124,9 @@ async def lower_game(update: Update, _):
 
     # Устанавливаем прогноз на акцию.
     generate_prediction(
-        query, user=user, prediction="down",
+        query,
+        user=user,
+        prediction="down",
     )
     # Редактируем сообщение с клавиатурой.
     await query.edit_message_text(
@@ -150,7 +159,10 @@ async def game_results(context: CallbackContext):
                 if i.split(":")[-1] == "up":
                     if check_stock_prices(i.split(":")[0]):
                         await user_won(
-                            context, database=db, user=user, stock=i.split(":")[0],
+                            context,
+                            database=db,
+                            user=user,
+                            stock=i.split(":")[0],
                         )
                     else:
                         await context.bot.send_message(
@@ -160,7 +172,10 @@ async def game_results(context: CallbackContext):
                 else:
                     if not check_stock_prices(i.split(":")[0]):
                         await user_won(
-                            context, database=db, user=user, stock=i.split(":")[0],
+                            context,
+                            database=db,
+                            user=user,
+                            stock=i.split(":")[0],
                         )
                     else:
                         await context.bot.send_message(
@@ -174,7 +189,7 @@ async def game_results(context: CallbackContext):
                 await context.bot.send_message(
                     chat_id=user.id,
                     text=f"На данный момент к бирже нет доступа."
-                         f"Прогноз на акцию {i.split(':')[0]} был отменен.",
+                    f"Прогноз на акцию {i.split(':')[0]} был отменен.",
                 )
         # Удаляем пройденные прогнозы
         db.delete_predictions(user)
