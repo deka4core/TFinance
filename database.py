@@ -1,6 +1,6 @@
 import sqlite3
 
-from items import User
+from models import User
 
 
 def singleton(cls):
@@ -10,17 +10,19 @@ def singleton(cls):
         if instance[0] is None:
             instance[0] = cls(*args, **kwargs)
         return instance[0]
+
     return wrapper
 
 
 @singleton
 class Database:
     """
-        Класс БД с данными о пользователях.
+    Класс БД с данными о пользователях.
     """
-    def __init__(self, db_name: str):
+
+    def __init__(self):
         # Подключение к БД с отключенной проверкой потока.
-        self.con = sqlite3.connect(db_name, check_same_thread=False)
+        self.con = sqlite3.connect("data.db", check_same_thread=False)
         self.cur = self.con.cursor()
         self.setup()
 
@@ -32,9 +34,17 @@ class Database:
         self.cur.execute(
             """CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY ON CONFLICT IGNORE NOT NULL,
-            first_name STRING, last_name STRING, username STRING,
-            favourites_stocks STRING, prediction STRING, selected_stock STRING,
-            points INTEGER, daily_notify BOOLEAN);
+            first_name STRING,
+            last_name STRING,
+            username STRING,
+            language_code STRING,
+            is_bot BOOLEAN,
+            favourites_stocks STRING,
+            prediction STRING,
+            selected_stock STRING,
+            points INTEGER,
+            daily_notify BOOLEAN
+            );
             """,
         )
         self.con.commit()
@@ -45,12 +55,25 @@ class Database:
         :param user: Экземпляр класса User с данными об этом пользователе.
         :return: None
         """
-        self.cur.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);",
-                         (user.id, user.first_name, user.last_name,
-                          user.username, None, None, None, user.points, False))
+        self.cur.execute(
+            "INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+            (
+                user.id,
+                user.first_name,
+                user.last_name,
+                user.username,
+                user.language_code,
+                user.is_bot,
+                None,
+                None,
+                None,
+                user.points,
+                False,
+            ),
+        )
         self.con.commit()
 
-    def get_users(self) -> [User]:
+    def get_users(self) -> list[User]:
         """
             Получить список пользователей.
         :return: Возвращает список всех пользователей, записанных в БД.
@@ -60,11 +83,17 @@ class Database:
         ).fetchall()
         return [
             User(
-                {"id": i[0], "first_name": i[1], "last_name": i[2], "username": i[3],
-                 "favourites_stocks": i[4], "prediction": i[5], "selected_stock": i[6],
-                 "points": i[7],
-                 },
-            ) for i in users
+                user_id=row[0],
+                first_name=row[1],
+                last_name=row[2],
+                username=row[3],
+                language_code=row[4],
+                is_bot=bool(row[5]),
+                favourite_stocks=row[6],
+                prediction=row[7],
+                selected_stock=row[8],
+            )
+            for row in users
         ]
 
     def add_prediction(self, user: User, stock_name: str, updown: str):
@@ -182,9 +211,13 @@ class Database:
         :param msg_id: ID сообщения с игрой.
         :return: None
         """
-        selected_stocks = self.cur.execute(
-            f"SELECT selected_stock FROM users WHERE id = {user.id}",
-        ).fetchone()[0].split()
+        selected_stocks = (
+            self.cur.execute(
+                f"SELECT selected_stock FROM users WHERE id = {user.id}",
+            )
+            .fetchone()[0]
+            .split()
+        )
         for i in range(len(selected_stocks)):
             if str(msg_id) == selected_stocks[i].split(":")[-1]:
                 del selected_stocks[i]

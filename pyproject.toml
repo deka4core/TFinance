@@ -1,0 +1,19 @@
+[tool.flake8]
+max-line-length = 89
+inline-quotes="double"
+import-order-style="google"
+extend-ignore = [
+    "R503",
+    "R502",
+    "F401",
+    "N802",
+]
+exclude = [
+    ".git",
+    "__pycache__",
+    "docs/source/conf.py",
+    "venv",
+]
+
+[tool.black]
+line-length = 89
